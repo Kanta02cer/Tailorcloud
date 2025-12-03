@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/enterprise_theme.dart';
+import '../../services/pdf_download_service.dart';
 
 /// 発注書PDF表示画面
 class ComplianceDocumentScreen extends StatelessWidget {
@@ -33,9 +34,47 @@ class ComplianceDocumentScreen extends StatelessWidget {
   }
 
   Future<void> _downloadPdf(BuildContext context) async {
-    // TODO: PDFダウンロード機能の実装
-    // 現在は外部ブラウザで開く
-    await _openPdf(context);
+    // ローディング表示
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: EnterpriseColors.primaryBlue,
+        ),
+      ),
+    );
+
+    try {
+      final fileName = 'compliance_doc_${orderId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final filePath = await PdfDownloadService.downloadPdf(
+        url: documentUrl,
+        fileName: fileName,
+      );
+
+      if (context.mounted) {
+        Navigator.pop(context); // ローディングダイアログを閉じる
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('PDFをダウンロードしました: $filePath'),
+            backgroundColor: EnterpriseColors.successGreen,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // ローディングダイアログを閉じる
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('PDFのダウンロードに失敗しました: ${e.toString()}'),
+            backgroundColor: EnterpriseColors.errorRed,
+          ),
+        );
+      }
+    }
   }
 
   @override

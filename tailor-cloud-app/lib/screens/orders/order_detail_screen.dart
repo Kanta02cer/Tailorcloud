@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/enterprise_theme.dart';
 import '../../models/order.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/compliance_provider.dart';
+import '../../providers/invoice_provider.dart';
+import '../../services/pdf_download_service.dart';
 import 'order_confirm_screen.dart';
 import 'compliance_document_screen.dart';
 
@@ -340,7 +343,24 @@ class OrderDetailScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 発注書PDF表示ボタン（確定済みの場合）
+        // 発注書PDF生成ボタン（確定済みで未生成の場合）
+        if (order.status == OrderStatus.confirmed &&
+            order.complianceDocUrl == null) ...[
+          ElevatedButton.icon(
+            onPressed: () async {
+              _generateComplianceDocument(context, ref, order);
+            },
+            icon: const Icon(Icons.description),
+            label: const Text('発注書PDFを生成'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: EnterpriseColors.primaryBlue,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        
+        // 発注書PDF表示ボタン（確定済みで生成済みの場合）
         if (order.status == OrderStatus.confirmed &&
             order.complianceDocUrl != null) ...[
           ElevatedButton.icon(
@@ -359,6 +379,22 @@ class OrderDetailScreen extends ConsumerWidget {
             label: const Text('発注書PDFを表示'),
             style: ElevatedButton.styleFrom(
               backgroundColor: EnterpriseColors.primaryBlue,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        
+        // インボイスPDF生成ボタン（確定済みの場合）
+        if (order.status == OrderStatus.confirmed) ...[
+          ElevatedButton.icon(
+            onPressed: () async {
+              _generateInvoice(context, ref, order);
+            },
+            icon: const Icon(Icons.receipt),
+            label: const Text('インボイスPDFを生成'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: EnterpriseColors.metallicGold,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),
@@ -468,6 +504,166 @@ class OrderDetailScreen extends ConsumerWidget {
 
   String _formatDate(DateTime date) {
     return '${date.year}年${date.month}月${date.day}日';
+  }
+
+  Future<void> _generateComplianceDocument(
+    BuildContext context,
+    WidgetRef ref,
+    Order order,
+  ) async {
+    // ローディングダイアログを表示
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: EnterpriseColors.primaryBlue,
+        ),
+      ),
+    );
+
+    try {
+      final response = await ref.read(
+        generateComplianceDocumentProvider(order.id).future,
+      );
+
+      if (context.mounted) {
+        Navigator.pop(context); // ローディングダイアログを閉じる
+
+        // 成功メッセージを表示
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('発注書PDFを生成しました'),
+            backgroundColor: EnterpriseColors.successGreen,
+          ),
+        );
+
+        // 注文情報を更新
+        ref.invalidate(orderProvider(order.id, tenantId: tenantId));
+
+        // PDF表示画面に遷移
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ComplianceDocumentScreen(
+              orderId: order.id,
+              documentUrl: response.docUrl,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // ローディングダイアログを閉じる
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('発注書PDFの生成に失敗しました: ${e.toString()}'),
+            backgroundColor: EnterpriseColors.errorRed,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _generateInvoice(
+    BuildContext context,
+    WidgetRef ref,
+    Order order,
+  ) async {
+    // ローディングダイアログを表示
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: EnterpriseColors.primaryBlue,
+        ),
+      ),
+    );
+
+    try {
+      final response = await ref.read(
+        generateInvoiceProvider(order.id).future,
+      );
+
+      if (context.mounted) {
+        Navigator.pop(context); // ローディングダイアログを閉じる
+
+        // ダウンロード確認ダイアログ
+        final shouldDownload = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: EnterpriseColors.surfaceGray,
+            title: const Text(
+              'インボイスPDF生成完了',
+              style: TextStyle(color: EnterpriseColors.textPrimary),
+            ),
+            content: const Text(
+              'インボイスPDFを生成しました。ダウンロードしますか？',
+              style: TextStyle(color: EnterpriseColors.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'キャンセル',
+                  style: TextStyle(color: EnterpriseColors.textSecondary),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: EnterpriseColors.primaryBlue,
+                ),
+                child: const Text('ダウンロード'),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldDownload == true) {
+          // PDFをダウンロード
+          try {
+            final fileName = 'invoice_${order.id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+            final filePath = await PdfDownloadService.downloadPdf(
+              url: response.invoiceUrl,
+              fileName: fileName,
+            );
+
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('PDFをダウンロードしました: $filePath'),
+                  backgroundColor: EnterpriseColors.successGreen,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('PDFのダウンロードに失敗しました: ${e.toString()}'),
+                  backgroundColor: EnterpriseColors.errorRed,
+                ),
+              );
+            }
+          }
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // ローディングダイアログを閉じる
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('インボイスPDFの生成に失敗しました: ${e.toString()}'),
+            backgroundColor: EnterpriseColors.errorRed,
+          ),
+        );
+      }
+    }
   }
 }
 
