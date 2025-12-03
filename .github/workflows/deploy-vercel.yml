@@ -42,5 +42,3 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
           working-directory: suit-mbti-web-app
-          vercel-root-directory: suit-mbti-web-app
-
