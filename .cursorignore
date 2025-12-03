@@ -1,0 +1,35 @@
+# Cursor IDEで非表示にするファイル・ディレクトリ
+
+# ビルド成果物
+dist/
+build/
+*.log
+
+# 依存関係
+node_modules/
+go/pkg/
+go/bin/
+.dart_tool/
+.pub/
+
+# 環境変数
+.env
+.env.local
+.env.*.local
+
+# IDE設定
+.vscode/
+.idea/
+
+# Vercel関連（削除済みだが念のため）
+.vercel/
+vercel.json
+
+# 一時ファイル
+*.tmp
+*.temp
+*.cache
+
+# ドキュメント（大量の警告が出る場合）
+# docs/
+

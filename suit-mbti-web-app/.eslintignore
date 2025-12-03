@@ -1,0 +1,20 @@
+# ESLintで無視するファイル・ディレクトリ
+
+# ビルド成果物
+dist/
+build/
+
+# 依存関係
+node_modules/
+
+# 設定ファイル
+vite.config.ts
+tsconfig.json
+tsconfig.node.json
+
+# 型定義ファイル
+*.d.ts
+
+# 自動生成ファイル
+*.generated.ts
+
