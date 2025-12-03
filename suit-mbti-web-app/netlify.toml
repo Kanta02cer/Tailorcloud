@@ -1,0 +1,38 @@
+# Netlify設定ファイル
+# TailorCloud Webアプリ用
+
+[build]
+  base = "."
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# 環境変数のデフォルト値（本番環境ではNetlifyダッシュボードで設定）
+[context.production.environment]
+  VITE_API_BASE_URL = "https://your-api.com"
+  VITE_TENANT_ID = "tenant_test_suit_mbti"
+
+[context.deploy-preview.environment]
+  VITE_API_BASE_URL = "http://localhost:8080"
+  VITE_TENANT_ID = "tenant_test_suit_mbti"
+
+[context.branch-deploy.environment]
+  VITE_API_BASE_URL = "http://localhost:8080"
+  VITE_TENANT_ID = "tenant_test_suit_mbti"
+
+# SPAルーティング対応
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ヘッダー設定
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
