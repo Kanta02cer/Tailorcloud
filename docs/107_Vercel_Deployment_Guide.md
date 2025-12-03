@@ -24,6 +24,12 @@ TailorCloudのWebアプリ（suit-mbti-web-app）をVercelにデプロイし、�
 
 ## 🚀 デプロイ手順
 
+### 方法1: GitHub Actions経由での自動デプロイ（推奨）
+
+詳細は [Vercel GitHub Actions セットアップガイド](./108_Vercel_GitHub_Actions_Setup.md) を参照してください。
+
+### 方法2: Vercelダッシュボード経由でのデプロイ
+
 ### ステップ1: Vercelプロジェクトの作成
 
 1. **Vercelにログイン**
