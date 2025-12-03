@@ -222,7 +222,22 @@ func (s *MeasurementCorrectionService) calculateSilhouette(
 		// デフォルト: テーパード
 		kneeHalf := raw.Knee / 2.0
 		hem := kneeHalf + profile.Ease - 5.0
+
+		// リミッター: IF Hem < (Calf/2 - 1.5) THEN Error
+		minHem := (raw.Calf / 2.0) - 1.5
+		if hem < minHem {
+			return fmt.Errorf(
+				"hem width (%.1fcm) is less than minimum (%.1fcm). Silhouette calculation failed",
+				hem, minHem,
+			)
+		}
+
 		final.Hem = hem
+		final.Corrections = append(final.Corrections, Correction{
+			Type:        "SILHOUETTE_DEFAULT",
+			Value:       hem,
+			Description: fmt.Sprintf("デフォルトシルエット（テーパード）: 裾幅 %.1fcm (膝幅/2 + ゆとり%.1fcm - 5.0cm)", hem, profile.Ease),
+		})
 	}
 
 	return nil
