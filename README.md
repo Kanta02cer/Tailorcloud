@@ -40,6 +40,22 @@ teiloroud-ERPSystem/
 
 ---
 
+## 🌐 GitHub Pagesで公開
+
+TailorCloud WebアプリはGitHub Pagesで静的サイトとして公開できます。
+
+**公開URL**: https://Kanta02cer.github.io/Tailorcloud/
+
+### 自動デプロイ
+
+1. リポジトリの `Settings` → `Pages` に移動
+2. `Source` を `GitHub Actions` に設定
+3. `main` ブランチにプッシュすると自動的にデプロイされます
+
+詳細は [GitHub Pages デプロイメントガイド](./docs/99_GitHub_Pages_Deployment.md) を参照してください。
+
+---
+
 ## 🚀 クイックスタート
 
 ### 前提条件

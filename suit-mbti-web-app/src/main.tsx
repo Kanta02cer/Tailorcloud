@@ -6,6 +6,9 @@ import App from './App';
 
 const queryClient = new QueryClient();
 
+// GitHub Pages用のbase pathを設定
+const basename = import.meta.env.PROD ? '/Tailorcloud' : '';
+
 const rootElement = document.getElementById('root');
 
 if (rootElement) {
@@ -14,7 +17,7 @@ if (rootElement) {
   root.render(
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter basename={basename}>
           <App />
         </BrowserRouter>
       </QueryClientProvider>
