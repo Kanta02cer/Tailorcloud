@@ -28,6 +28,8 @@ go/pkg/
 *.test
 *.out
 vendor/
+main
+api
 
 # Flutter/Dart
 .dart_tool/
