@@ -97,6 +97,28 @@ func (s *DiagnosisService) GetDiagnosesByUser(ctx context.Context, userID string
 	return diagnoses, nil
 }
 
+// GetLatestByUserID ユーザーの最新の診断を取得
+func (s *DiagnosisService) GetLatestByUserID(ctx context.Context, userID string, tenantID string) (*domain.Diagnosis, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user_id is required")
+	}
+	if tenantID == "" {
+		return nil, fmt.Errorf("tenant_id is required")
+	}
+
+	diagnoses, err := s.diagnosisRepo.GetByUserID(ctx, userID, tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get diagnoses by user: %w", err)
+	}
+
+	if len(diagnoses) == 0 {
+		return nil, fmt.Errorf("no diagnosis found for user")
+	}
+
+	// 最新の診断を返す（GetByUserIDはcreated_at DESCでソート済み）
+	return diagnoses[0], nil
+}
+
 // GetDiagnosesByTenantRequest テナントの診断一覧取得リクエスト
 type GetDiagnosesByTenantRequest struct {
 	TenantID string

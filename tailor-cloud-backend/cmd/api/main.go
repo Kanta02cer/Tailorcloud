@@ -315,6 +315,16 @@ func main() {
 		log.Println("Appointment service initialized")
 	}
 
+	// 自動補正エンジンサービス（The "Auto Patterner"）
+	var measurementCorrectionService *service.MeasurementCorrectionService
+	if diagnosisService != nil && fabricRepo != nil {
+		measurementCorrectionService = service.NewMeasurementCorrectionService(
+			diagnosisService,
+			fabricRepo,
+		)
+		log.Println("Measurement correction service (Auto Patterner) initialized")
+	}
+
 	// ハンドラー
 	orderHandler := handler.NewOrderHandler(orderService)
 
@@ -381,6 +391,13 @@ func main() {
 	if appointmentService != nil {
 		appointmentHandler = handler.NewAppointmentHandler(appointmentService)
 		log.Println("Appointment handler initialized")
+	}
+
+	// 自動補正エンジンハンドラー（The "Auto Patterner"）
+	var measurementCorrectionHandler *handler.MeasurementCorrectionHandler
+	if measurementCorrectionService != nil {
+		measurementCorrectionHandler = handler.NewMeasurementCorrectionHandler(measurementCorrectionService)
+		log.Println("Measurement correction handler (Auto Patterner) initialized")
 	}
 
 	// 4. Routing
@@ -493,6 +510,11 @@ func main() {
 		mux.HandleFunc("POST /api/diagnoses", authChainMiddleware(diagnosisHandler.CreateDiagnosis))
 		mux.HandleFunc("GET /api/diagnoses/{id}", authChainMiddleware(diagnosisHandler.GetDiagnosis))
 		mux.HandleFunc("GET /api/diagnoses", authChainMiddleware(diagnosisHandler.ListDiagnoses))
+	}
+
+	// Measurement Correction (自動補正エンジン) endpoints
+	if measurementCorrectionHandler != nil {
+		mux.HandleFunc("POST /api/measurements/convert", authChainMiddleware(rbacMiddleware.RequireOwnerOrStaff()(measurementCorrectionHandler.ConvertToFinalMeasurements)))
 	}
 
 	// Appointment (予約) endpoints (Suit-MBTI統合)
