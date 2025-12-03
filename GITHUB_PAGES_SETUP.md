@@ -1,23 +1,19 @@
-# デプロイメントセットアップ手順
+# GitHub Pages セットアップ手順
 
 **作成日**: 2025-01  
 **更新日**: 2025-01  
-**目的**: Webアプリを動的サイトとして公開するためのデプロイメント手順
+**目的**: WebアプリをGitHub Pagesで公開するためのセットアップ手順
 
 ---
 
-## 🚀 推奨デプロイメント先: Vercel
+## 🎯 概要
 
-**動的サイト対応のため、Vercelへのデプロイを推奨します。**
+TailorCloud WebアプリをGitHub Pagesで静的サイトとして公開します。
 
-詳細は [Vercelデプロイメントガイド](./docs/107_Vercel_Deployment_Guide.md) を参照してください。
+**デプロイ先**: GitHub Pages  
+**URL**: `https://Kanta02cer.github.io/Tailorcloud/`
 
----
-
-## 📋 GitHub Pages セットアップ（静的サイト用）
-
-**注意**: GitHub Pagesは静的サイトホスティングのため、環境変数の設定が制限されます。  
-動的サイトとして動作させる場合は、Vercelを使用してください。
+**注意**: GitHub Pagesは静的サイトホスティングのため、環境変数はビルド時に埋め込まれます。
 
 ---
 
