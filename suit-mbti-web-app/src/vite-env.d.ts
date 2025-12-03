@@ -2,6 +2,8 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string
+  readonly VITE_TENANT_ID?: string
+  readonly VERCEL?: string
   readonly PROD: boolean
   readonly DEV: boolean
   readonly MODE: string

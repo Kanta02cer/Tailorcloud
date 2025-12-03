@@ -6,8 +6,9 @@ import App from './App';
 
 const queryClient = new QueryClient();
 
-// GitHub Pages用のbase pathを設定
-const basename = import.meta.env.PROD ? '/Tailorcloud' : '';
+// Vercelデプロイ時はbase pathを削除（動的サイト対応）
+// GitHub Pagesデプロイ時は '/Tailorcloud' を使用
+const basename = import.meta.env.VERCEL ? '' : (import.meta.env.PROD ? '/Tailorcloud' : '');
 
 const rootElement = document.getElementById('root');
 
