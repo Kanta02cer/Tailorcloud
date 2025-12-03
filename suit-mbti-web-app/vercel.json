@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "buildCommand": "cd suit-mbti-web-app && npm run build",
-  "outputDirectory": "suit-mbti-web-app/dist",
-  "devCommand": "cd suit-mbti-web-app && npm run dev",
-  "installCommand": "cd suit-mbti-web-app && npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
   "framework": "vite",
   "rewrites": [
     {
