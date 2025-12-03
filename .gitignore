@@ -78,6 +78,11 @@ dist-ssr/
 .env
 .env.local
 .env.*.local
+
+# Credentials and secrets (do not commit)
+docs/113_Vercel_Credentials_Setup.md
+*credentials*.md
+*secrets*.md
 *.key
 *.pem
 *.p12
