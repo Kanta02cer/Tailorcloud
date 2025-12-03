@@ -325,6 +325,13 @@ func main() {
 		log.Println("Measurement correction service (Auto Patterner) initialized")
 	}
 
+	// 採寸データバリデーションサービス
+	var measurementValidationService *service.MeasurementValidationService
+	if orderRepo != nil {
+		measurementValidationService = service.NewMeasurementValidationService(orderRepo)
+		log.Println("Measurement validation service initialized")
+	}
+
 	// ハンドラー
 	orderHandler := handler.NewOrderHandler(orderService)
 
@@ -398,6 +405,13 @@ func main() {
 	if measurementCorrectionService != nil {
 		measurementCorrectionHandler = handler.NewMeasurementCorrectionHandler(measurementCorrectionService)
 		log.Println("Measurement correction handler (Auto Patterner) initialized")
+	}
+
+	// 採寸データバリデーションハンドラー
+	var measurementValidationHandler *handler.MeasurementValidationHandler
+	if measurementValidationService != nil {
+		measurementValidationHandler = handler.NewMeasurementValidationHandler(measurementValidationService)
+		log.Println("Measurement validation handler initialized")
 	}
 
 	// 4. Routing
@@ -515,6 +529,12 @@ func main() {
 	// Measurement Correction (自動補正エンジン) endpoints
 	if measurementCorrectionHandler != nil {
 		mux.HandleFunc("POST /api/measurements/convert", authChainMiddleware(rbacMiddleware.RequireOwnerOrStaff()(measurementCorrectionHandler.ConvertToFinalMeasurements)))
+	}
+
+	// Measurement Validation (採寸データバリデーション) endpoints
+	if measurementValidationHandler != nil {
+		mux.HandleFunc("POST /api/measurements/validate", authChainMiddleware(rbacMiddleware.RequireOwnerOrStaff()(measurementValidationHandler.ValidateMeasurements)))
+		mux.HandleFunc("POST /api/measurements/validate-range", authChainMiddleware(rbacMiddleware.RequireOwnerOrStaff()(measurementValidationHandler.ValidateMeasurementRange)))
 	}
 
 	// Appointment (予約) endpoints (Suit-MBTI統合)
