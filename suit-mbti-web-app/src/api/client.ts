@@ -1,7 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-
-// 環境変数からAPIベースURLを取得
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+import { API_BASE_URL } from '../config/api';
 
 // Axiosインスタンスを作成
 const apiClient: AxiosInstance = axios.create({
