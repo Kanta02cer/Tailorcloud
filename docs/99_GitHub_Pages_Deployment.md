@@ -200,12 +200,31 @@ npx vite preview --base /Tailorcloud/
 
 ### デプロイが失敗する
 
-**原因**: GitHub Actionsの権限設定が不足している
+**原因1**: GitHub Actionsの権限設定が不足している
 
 **解決方法**:
 1. リポジトリの `Settings` → `Actions` → `General` に移動
 2. `Workflow permissions` を `Read and write permissions` に設定
 3. `Allow GitHub Actions to create and approve pull requests` を有効化
+
+**原因2**: GitHub Pagesが有効化されていない、またはSource設定が間違っている
+
+**エラーメッセージ**: 
+```
+Error: Get Pages site failed. Please verify that the repository has Pages enabled 
+and configured to build using GitHub Actions
+```
+
+**解決方法**:
+1. リポジトリの `Settings` → `Pages` に移動
+2. **重要**: `Source` を `GitHub Actions` に設定（`Deploy from a branch` ではない）
+3. `Save` をクリック
+4. 数分待ってから、再度ワークフローを実行（`Actions` タブから手動実行も可能）
+
+**確認事項**:
+- `Source` が `GitHub Actions` になっているか確認
+- `Actions` タブでワークフローが実行されているか確認
+- ワークフローのログでエラーがないか確認
 
 ---
 

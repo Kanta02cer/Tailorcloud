@@ -82,12 +82,24 @@ gh-pages -d dist
 
 ### デプロイが失敗する
 
-**原因**: GitHub Actionsの権限設定が不足している
+**原因1**: GitHub Actionsの権限設定が不足している
 
 **解決方法**:
 1. リポジトリの `Settings` → `Actions` → `General` に移動
 2. `Workflow permissions` を `Read and write permissions` に設定
 3. `Allow GitHub Actions to create and approve pull requests` を有効化
+
+**原因2**: GitHub Pagesが有効化されていない
+
+**エラーメッセージ**: `Get Pages site failed. Please verify that the repository has Pages enabled`
+
+**解決方法**:
+1. リポジトリの `Settings` → `Pages` に移動
+2. `Source` を `GitHub Actions` に設定（重要！）
+3. `Save` をクリック
+4. 数分待ってから、再度ワークフローを実行
+
+**注意**: `Deploy from a branch` を選択している場合、GitHub Actionsでのデプロイは失敗します。必ず `GitHub Actions` を選択してください。
 
 ### API接続エラーが発生する
 
