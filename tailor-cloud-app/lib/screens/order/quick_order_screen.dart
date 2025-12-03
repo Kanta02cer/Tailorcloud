@@ -8,6 +8,7 @@ import '../../models/order.dart';
 import '../../providers/customer_provider.dart';
 import '../../providers/fabric_provider.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/measurement_validation_provider.dart';
 import '../customers/customer_create_screen.dart';
 import '../orders/order_confirm_screen.dart';
 
@@ -35,6 +36,10 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
   Customer? _selectedCustomer;
   Fabric? _selectedFabric;
   DateTime? _deliveryDate;
+
+  // バリデーション状態
+  ValidationResponse? _validationResult;
+  bool _isValidating = false;
 
   @override
   void dispose() {
@@ -552,6 +557,7 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
                 icon: Icons.straighten,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 suffixText: 'cm',
+                onChanged: _onMeasurementChanged,
               ),
             ),
             const SizedBox(width: 12),
@@ -563,6 +569,7 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
                 icon: Icons.straighten,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 suffixText: 'cm',
+                onChanged: _onMeasurementChanged,
               ),
             ),
             const SizedBox(width: 12),
@@ -574,10 +581,17 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
                 icon: Icons.straighten,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 suffixText: 'cm',
+                onChanged: _onMeasurementChanged,
               ),
             ),
           ],
         ),
+
+        // バリデーション結果表示
+        if (_validationResult != null) ...[
+          const SizedBox(height: 16),
+          _buildValidationAlerts(_validationResult!),
+        ],
       ],
     );
   }
@@ -591,6 +605,7 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
     String? prefixText,
     String? suffixText,
     String? Function(String?)? validator,
+    void Function(String)? onChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -618,6 +633,8 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
           controller: controller,
           keyboardType: keyboardType,
           style: const TextStyle(color: EnterpriseColors.textPrimary),
+          onChanged: onChanged,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: const TextStyle(
@@ -818,6 +835,120 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
         );
       }
     }
+  }
+
+  // 採寸データ変更時のバリデーション
+  Future<void> _onMeasurementChanged(String value) async {
+    // 顧客が選択されていない場合はスキップ
+    if (_selectedCustomer == null) {
+      return;
+    }
+
+    // 採寸データを準備
+    Map<String, dynamic> measurementData = {};
+    if (_jacketLengthController.text.isNotEmpty) {
+      final val = double.tryParse(_jacketLengthController.text);
+      if (val != null) measurementData['jacket_length'] = val;
+    }
+    if (_sleeveController.text.isNotEmpty) {
+      final val = double.tryParse(_sleeveController.text);
+      if (val != null) measurementData['sleeve'] = val;
+    }
+    if (_chestController.text.isNotEmpty) {
+      final val = double.tryParse(_chestController.text);
+      if (val != null) measurementData['chest'] = val;
+    }
+
+    // 採寸データが空の場合はスキップ
+    if (measurementData.isEmpty) {
+      setState(() {
+        _validationResult = null;
+      });
+      return;
+    }
+
+    // バリデーション実行
+    setState(() {
+      _isValidating = true;
+    });
+
+    try {
+      const tenantId = 'tenant-123'; // TODO: 認証から取得
+      final request = ValidateMeasurementsRequest(
+        customerId: _selectedCustomer!.id,
+        currentMeasurements: measurementData,
+      );
+
+      final result = await ref.read(validateMeasurementsProvider(request).future);
+      
+      if (mounted) {
+        setState(() {
+          _validationResult = result;
+          _isValidating = false;
+        });
+      }
+    } catch (e) {
+      // バリデーションエラーは無視（前回データがない場合など）
+      if (mounted) {
+        setState(() {
+          _validationResult = null;
+          _isValidating = false;
+        });
+      }
+    }
+  }
+
+  // バリデーションアラート表示
+  Widget _buildValidationAlerts(ValidationResponse result) {
+    if (result.alerts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final alert in result.alerts)
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: alert.severity == 'error'
+                  ? EnterpriseColors.errorRed.withOpacity(0.1)
+                  : Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: alert.severity == 'error'
+                    ? EnterpriseColors.errorRed
+                    : Colors.orange,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  alert.severity == 'error' ? Icons.error : Icons.warning,
+                  color: alert.severity == 'error'
+                      ? EnterpriseColors.errorRed
+                      : Colors.orange,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    alert.message,
+                    style: TextStyle(
+                      color: alert.severity == 'error'
+                          ? EnterpriseColors.errorRed
+                          : Colors.orange,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
   }
 
   Future<void> _navigateToNewCustomer(BuildContext context, String tenantId) async {
