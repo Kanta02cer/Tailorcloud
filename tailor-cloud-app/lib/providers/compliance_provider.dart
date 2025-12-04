@@ -43,4 +43,3 @@ Future<ComplianceDocumentResponse> generateComplianceDocument(
 
   return ComplianceDocumentResponse.fromJson(response);
 }
-

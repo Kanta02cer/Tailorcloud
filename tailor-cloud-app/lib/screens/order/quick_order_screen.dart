@@ -70,7 +70,8 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
         ),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: EnterpriseColors.textPrimary),
+          icon:
+              const Icon(Icons.arrow_back, color: EnterpriseColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -78,7 +79,7 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
         children: [
           // ステップインジケーター
           _buildStepIndicator(),
-          
+
           // メインコンテンツ
           Expanded(
             child: SingleChildScrollView(
@@ -89,7 +90,7 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
               ),
             ),
           ),
-          
+
           // ナビゲーションボタン
           _buildNavigationButtons(),
         ],
@@ -206,7 +207,8 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
-                        onPressed: () => _navigateToNewCustomer(context, tenantId),
+                        onPressed: () =>
+                            _navigateToNewCustomer(context, tenantId),
                         icon: const Icon(Icons.person_add),
                         label: const Text('新規顧客を登録'),
                         style: ElevatedButton.styleFrom(
@@ -390,9 +392,10 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
                 color: EnterpriseColors.textPrimary,
               ),
               items: fabrics.map((fabric) {
-                final displayName = fabric.brand != null && fabric.brand!.isNotEmpty
-                    ? '${fabric.brand} - ${fabric.name}'
-                    : fabric.name;
+                final displayName =
+                    fabric.brand != null && fabric.brand!.isNotEmpty
+                        ? '${fabric.brand} - ${fabric.name}'
+                        : fabric.name;
                 return DropdownMenuItem<Fabric>(
                   value: fabric,
                   child: Text(displayName),
@@ -457,7 +460,7 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
           ),
         ),
         const SizedBox(height: 24),
-        
+
         // 金額入力
         _buildTextField(
           controller: _amountController,
@@ -476,9 +479,9 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
             return null;
           },
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // 納期選択
         TextField(
           controller: _deliveryDateController,
@@ -525,9 +528,9 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
           ),
           onTap: () => _selectDeliveryDate(context),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // 採寸データ（簡易版）
         const Text(
           '採寸データ（任意）',
@@ -546,7 +549,7 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         Row(
           children: [
             Expanded(
@@ -555,7 +558,8 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
                 label: 'ジャケット長',
                 hintText: '72.5',
                 icon: Icons.straighten,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 suffixText: 'cm',
                 onChanged: _onMeasurementChanged,
               ),
@@ -567,7 +571,8 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
                 label: '袖長',
                 hintText: '60.0',
                 icon: Icons.straighten,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 suffixText: 'cm',
                 onChanged: _onMeasurementChanged,
               ),
@@ -579,7 +584,8 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
                 label: '胸囲',
                 hintText: '100.0',
                 icon: Icons.straighten,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 suffixText: 'cm',
                 onChanged: _onMeasurementChanged,
               ),
@@ -677,7 +683,6 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
               ),
             ),
           ),
-          validator: validator,
         ),
       ],
     );
@@ -707,7 +712,7 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
               ),
             ),
           if (_currentStep > 0) const SizedBox(width: 12),
-          
+
           // 次へ/確定ボタン
           Expanded(
             flex: _currentStep > 0 ? 1 : 1,
@@ -771,7 +776,9 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
       return;
     }
 
-    if (_selectedCustomer == null || _selectedFabric == null || _deliveryDate == null) {
+    if (_selectedCustomer == null ||
+        _selectedFabric == null ||
+        _deliveryDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('すべての項目を入力してください'),
@@ -789,7 +796,8 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
           _chestController.text.isNotEmpty) {
         measurementData = {};
         if (_jacketLengthController.text.isNotEmpty) {
-          measurementData['jacket_length'] = double.tryParse(_jacketLengthController.text);
+          measurementData['jacket_length'] =
+              double.tryParse(_jacketLengthController.text);
         }
         if (_sleeveController.text.isNotEmpty) {
           measurementData['sleeve'] = double.tryParse(_sleeveController.text);
@@ -879,8 +887,9 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
         currentMeasurements: measurementData,
       );
 
-      final result = await ref.read(validateMeasurementsProvider(request).future);
-      
+      final result =
+          await ref.read(validateMeasurementsProvider(request).future);
+
       if (mounted) {
         setState(() {
           _validationResult = result;
@@ -951,7 +960,8 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
     );
   }
 
-  Future<void> _navigateToNewCustomer(BuildContext context, String tenantId) async {
+  Future<void> _navigateToNewCustomer(
+      BuildContext context, String tenantId) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -962,7 +972,7 @@ class _QuickOrderScreenState extends ConsumerState<QuickOrderScreen> {
     if (result == true && mounted) {
       // 顧客一覧を再読み込み
       ref.invalidate(customerListProvider(tenantId));
-      
+
       // 最新の顧客一覧を取得して、最後に作成された顧客を選択
       final customersAsync = ref.read(customerListProvider(tenantId).future);
       final customers = await customersAsync;

@@ -13,7 +13,7 @@ class VisualOrderingScreen extends StatelessWidget {
         children: [
           // ヘッダー
           _buildHeader(context),
-          
+
           // メインコンテンツ
           Expanded(
             child: Row(
@@ -23,7 +23,7 @@ class VisualOrderingScreen extends StatelessWidget {
                   flex: 2,
                   child: _buildBodyMap(context),
                 ),
-                
+
                 // 右: 仕様選択・オプション
                 Expanded(
                   child: _buildSpecifications(context),
@@ -159,7 +159,7 @@ class VisualOrderingScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // 採寸入力モーダル（プレースホルダー）
           Positioned(
             top: 140,
@@ -205,7 +205,10 @@ class VisualOrderingScreen extends StatelessWidget {
                         width: 96,
                         child: TextField(
                           controller: TextEditingController(text: '98.5'),
-                          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .displayLarge
+                              ?.copyWith(
                                 fontSize: 32,
                               ),
                           keyboardType: TextInputType.number,
@@ -297,7 +300,7 @@ class VisualOrderingScreen extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 32),
-            
+
             // 選択された生地
             Card(
               child: Padding(
@@ -323,15 +326,19 @@ class VisualOrderingScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Selected Fabric',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
                                   color: EnterpriseColors.metallicGold,
                                 ),
                           ),
                           Text(
                             'V.B.C Perennial Navy',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                           ),
                         ],
                       ),
@@ -340,9 +347,9 @@ class VisualOrderingScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // モデル選択
             Text(
               'Model',
@@ -357,7 +364,8 @@ class VisualOrderingScreen extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: () {},
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: EnterpriseColors.metallicGold),
+                      side: const BorderSide(
+                          color: EnterpriseColors.metallicGold),
                       backgroundColor: EnterpriseColors.surfaceGray,
                       foregroundColor: EnterpriseColors.metallicGold,
                     ),
@@ -369,7 +377,8 @@ class VisualOrderingScreen extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: () {},
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: EnterpriseColors.borderGray),
+                      side:
+                          const BorderSide(color: EnterpriseColors.borderGray),
                       foregroundColor: EnterpriseColors.textSecondary,
                     ),
                     child: const Text('Italian (Classico)'),
@@ -377,9 +386,9 @@ class VisualOrderingScreen extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // ラペル選択
             Text(
               'Lapel',
@@ -404,9 +413,9 @@ class VisualOrderingScreen extends StatelessWidget {
               activeColor: EnterpriseColors.metallicGold,
               contentPadding: EdgeInsets.zero,
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // コンプライアンス確認
             Divider(
               color: EnterpriseColors.borderGray,
@@ -429,4 +438,3 @@ class VisualOrderingScreen extends StatelessWidget {
     );
   }
 }
-

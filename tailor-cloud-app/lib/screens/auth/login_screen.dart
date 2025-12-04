@@ -52,10 +52,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (mounted) {
         String errorMessage = 'ログインに失敗しました';
-        
+
         // Firebase Authのエラーメッセージを解析
         final errorString = e.toString().toLowerCase();
-        if (errorString.contains('user-not-found') || 
+        if (errorString.contains('user-not-found') ||
             errorString.contains('wrong-password')) {
           errorMessage = 'メールアドレスまたはパスワードが正しくありません';
         } else if (errorString.contains('invalid-email')) {
@@ -130,7 +130,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      style: const TextStyle(color: EnterpriseColors.textPrimary),
+                      style:
+                          const TextStyle(color: EnterpriseColors.textPrimary),
                       decoration: InputDecoration(
                         labelText: 'メールアドレス',
                         labelStyle: const TextStyle(
@@ -186,7 +187,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _handleLogin(),
-                      style: const TextStyle(color: EnterpriseColors.textPrimary),
+                      style:
+                          const TextStyle(color: EnterpriseColors.textPrimary),
                       decoration: InputDecoration(
                         labelText: 'パスワード',
                         labelStyle: const TextStyle(
@@ -267,7 +269,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : const Text(
@@ -299,4 +302,3 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
-

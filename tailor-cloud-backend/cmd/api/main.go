@@ -230,6 +230,13 @@ func main() {
 		log.Println("Customer service initialized")
 	}
 
+	// アナリティクスサービス
+	var analyticsService *service.AnalyticsService
+	if orderRepo != nil && customerRepo != nil {
+		analyticsService = service.NewAnalyticsService(orderRepo, customerRepo)
+		log.Println("Analytics service initialized")
+	}
+
 	// 在庫引当サービス（エンタープライズ実装の核心）
 	var inventoryAllocationService *service.InventoryAllocationService
 	if fabricRollRepo != nil && fabricAllocationRepo != nil && fabricRepo != nil && db != nil {
@@ -356,6 +363,13 @@ func main() {
 	if customerService != nil {
 		customerHandler = handler.NewCustomerHandler(customerService)
 		log.Println("Customer handler initialized")
+	}
+
+	// アナリティクスハンドラー
+	var analyticsHandler *handler.AnalyticsHandler
+	if analyticsService != nil {
+		analyticsHandler = handler.NewAnalyticsHandler(analyticsService)
+		log.Println("Analytics handler initialized")
 	}
 
 	// 反物（Roll）ハンドラー
@@ -491,6 +505,11 @@ func main() {
 		mux.HandleFunc("PUT /api/customers/{id}", authChainMiddleware(rbacMiddleware.RequireOwnerOrStaff()(customerHandler.UpdateCustomer)))
 		mux.HandleFunc("DELETE /api/customers/{id}", authChainMiddleware(rbacMiddleware.RequireOwnerOnly()(customerHandler.DeleteCustomer)))
 		mux.HandleFunc("GET /api/customers/{id}/orders", authChainMiddleware(customerHandler.GetCustomerOrders))
+	}
+
+	// Analytics endpoints
+	if analyticsHandler != nil {
+		mux.HandleFunc("GET /api/analytics/summary", authChainMiddleware(analyticsHandler.GetSummary))
 	}
 
 	// Fabric Roll (反物管理) endpoints

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/enterprise_theme.dart';
 import '../../models/customer.dart';
 import '../../providers/customer_provider.dart';
+import '../../utils/responsive.dart';
 
 /// 顧客編集画面
 class CustomerEditScreen extends ConsumerStatefulWidget {
@@ -24,17 +25,48 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
   late final TextEditingController _addressController;
-  
+  late final TextEditingController _vipRankController;
+  late final TextEditingController _lifetimeValueController;
+  late final TextEditingController _notesController;
+  late final TextEditingController _tagInputController;
+  late final TextEditingController _preferredChannelController;
+  late final TextEditingController _leadSourceController;
+  late final TextEditingController _interactionNoteController;
+  final List<String> _tags = [];
+  String _status = 'lead';
+  String _interactionType = 'note';
+  DateTime? _lastInteractionAt;
+
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.customer.name);
-    _nameKanaController = TextEditingController(text: widget.customer.nameKana ?? '');
+    _nameKanaController =
+        TextEditingController(text: widget.customer.nameKana ?? '');
     _emailController = TextEditingController(text: widget.customer.email ?? '');
     _phoneController = TextEditingController(text: widget.customer.phone ?? '');
-    _addressController = TextEditingController(text: widget.customer.address ?? '');
+    _addressController =
+        TextEditingController(text: widget.customer.address ?? '');
+    _vipRankController = TextEditingController(
+      text: widget.customer.vipRank?.toString() ?? '',
+    );
+    _lifetimeValueController = TextEditingController(
+      text: widget.customer.lifetimeValue?.toStringAsFixed(0) ?? '',
+    );
+    _notesController = TextEditingController(text: widget.customer.notes ?? '');
+    _tagInputController = TextEditingController();
+    _preferredChannelController = TextEditingController(
+      text: widget.customer.preferredChannel ?? '',
+    );
+    _leadSourceController = TextEditingController(
+      text: widget.customer.leadSource ?? '',
+    );
+    _interactionNoteController = TextEditingController();
+    _tags.addAll(widget.customer.tags);
+    _status = widget.customer.status ?? 'lead';
+    _lastInteractionAt = widget.customer.lastInteractionAt;
   }
 
   @override
@@ -44,6 +76,13 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _vipRankController.dispose();
+    _lifetimeValueController.dispose();
+    _notesController.dispose();
+    _tagInputController.dispose();
+    _preferredChannelController.dispose();
+    _leadSourceController.dispose();
+    _interactionNoteController.dispose();
     super.dispose();
   }
 
@@ -75,6 +114,22 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
         address: _addressController.text.trim().isEmpty
             ? null
             : _addressController.text.trim(),
+        status: _status,
+        tags: _tags,
+        vipRank: int.tryParse(_vipRankController.text.trim()),
+        lifetimeValue: double.tryParse(_lifetimeValueController.text.trim()),
+        ltvScore: double.tryParse(_lifetimeValueController.text.trim()),
+        preferredChannel: _preferredChannelController.text.trim().isEmpty
+            ? null
+            : _preferredChannelController.text.trim(),
+        leadSource: _leadSourceController.text.trim().isEmpty
+            ? null
+            : _leadSourceController.text.trim(),
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
+        lastInteractionAt: _lastInteractionAt,
+        interactions: _composeInteractionPayload(),
       );
 
       await ref.read(updateCustomerProvider(
@@ -82,30 +137,28 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
         request,
       ).future);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('顧客情報を更新しました'),
-            backgroundColor: EnterpriseColors.successGreen,
-          ),
-        );
-        Navigator.pop(context, true);
-      }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('顧客情報を更新しました'),
+          backgroundColor: EnterpriseColors.successGreen,
+        ),
+      );
+      Navigator.pop(context, true);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('エラー: ${e.toString()}'),
-            backgroundColor: EnterpriseColors.errorRed,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('エラー: ${e.toString()}'),
+          backgroundColor: EnterpriseColors.errorRed,
+        ),
+      );
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -129,9 +182,14 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
         key: _formKey,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: Responsive.formMaxWidth(context),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               // 顧客名（必須）
               _buildTextField(
                 controller: _nameController,
@@ -146,9 +204,9 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // カナ名（任意）
               _buildTextField(
                 controller: _nameKanaController,
@@ -157,9 +215,9 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                 icon: Icons.text_fields,
                 required: false,
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // メールアドレス（任意）
               _buildTextField(
                 controller: _emailController,
@@ -177,9 +235,9 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // 電話番号（任意）
               _buildTextField(
                 controller: _phoneController,
@@ -189,9 +247,9 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                 keyboardType: TextInputType.phone,
                 required: false,
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // 住所（任意）
               _buildTextField(
                 controller: _addressController,
@@ -201,9 +259,33 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                 maxLines: 3,
                 required: false,
               ),
-              
+
+              const SizedBox(height: 16),
+
+              _buildStatusSelector(),
+
+              const SizedBox(height: 16),
+
+              _buildTagEditor(),
+
+              const SizedBox(height: 16),
+
+              _buildMetricFields(),
+
+              const SizedBox(height: 16),
+
+              _buildChannelFields(),
+
+              const SizedBox(height: 16),
+
+              _buildInteractionSection(),
+
+              const SizedBox(height: 16),
+
+              _buildNotesField(),
+
               const SizedBox(height: 32),
-              
+
               // 更新ボタン
               ElevatedButton(
                 onPressed: _isLoading ? null : _updateCustomer,
@@ -237,6 +319,269 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildStatusSelector() {
+    const statuses = ['lead', 'prospect', 'active', 'inactive', 'vip'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '顧客ステータス',
+          style: TextStyle(
+            color: EnterpriseColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: statuses.map((status) {
+            final isSelected = _status == status;
+            return ChoiceChip(
+              label: Text(status.toUpperCase()),
+              selected: isSelected,
+              onSelected: (_) {
+                setState(() => _status = status);
+              },
+              selectedColor: EnterpriseColors.primaryBlue,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.black : EnterpriseColors.textPrimary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTagEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'タグ',
+          style: TextStyle(
+            color: EnterpriseColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _tags
+              .map(
+                (tag) => Chip(
+                  label: Text(tag),
+                  backgroundColor: EnterpriseColors.surfaceGray,
+                  deleteIconColor: EnterpriseColors.textSecondary,
+                  onDeleted: () => setState(() => _tags.remove(tag)),
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _tagInputController,
+          style: const TextStyle(color: EnterpriseColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: 'タグを入力してEnterで追加',
+            filled: true,
+            fillColor: EnterpriseColors.surfaceGray,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: EnterpriseColors.borderGray),
+            ),
+          ),
+          onSubmitted: (value) {
+            final tag = value.trim().toLowerCase();
+            if (tag.isEmpty) return;
+            if (!_tags.contains(tag)) {
+              setState(() => _tags.add(tag));
+            }
+            _tagInputController.clear();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricFields() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildTextField(
+            controller: _vipRankController,
+            label: 'VIPランク',
+            hintText: '0',
+            icon: Icons.star,
+            keyboardType: TextInputType.number,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildTextField(
+            controller: _lifetimeValueController,
+            label: 'LTV (円)',
+            hintText: '1200000',
+            icon: Icons.payments,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChannelFields() {
+    return Column(
+      children: [
+        _buildTextField(
+          controller: _preferredChannelController,
+          label: 'Preferred Channel',
+          hintText: 'LINE / Email / Phone',
+          icon: Icons.forum,
+        ),
+        const SizedBox(height: 12),
+        _buildTextField(
+          controller: _leadSourceController,
+          label: 'Lead Source',
+          hintText: '紹介 / Web広告',
+          icon: Icons.campaign,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInteractionSection() {
+    return Card(
+      color: EnterpriseColors.surfaceGray,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.timeline, color: EnterpriseColors.primaryBlue),
+                const SizedBox(width: 8),
+                const Text(
+                  'コンタクト履歴の追加',
+                  style: TextStyle(
+                    color: EnterpriseColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: _pickInteractionDate,
+                  child: Text(
+                    _lastInteractionAt == null
+                        ? '日時を選択'
+                        : _lastInteractionAt!.toLocal().toString(),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _interactionType,
+              dropdownColor: EnterpriseColors.surfaceGray,
+              decoration: const InputDecoration(
+                labelText: '種別',
+                labelStyle: TextStyle(color: EnterpriseColors.textSecondary),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: EnterpriseColors.borderGray),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: EnterpriseColors.primaryBlue,
+                    width: 2,
+                  ),
+                ),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'note', child: Text('メモ')),
+                DropdownMenuItem(value: 'meeting', child: Text('面談')),
+                DropdownMenuItem(value: 'call', child: Text('電話')),
+                DropdownMenuItem(value: 'fitting', child: Text('採寸')),
+              ],
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() => _interactionType = value);
+              },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _interactionNoteController,
+              maxLines: 3,
+              style: const TextStyle(color: EnterpriseColors.textPrimary),
+              decoration: InputDecoration(
+                hintText: 'メモを入力',
+                filled: true,
+                fillColor: EnterpriseColors.deepBlack,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: EnterpriseColors.borderGray),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotesField() {
+    return _buildTextField(
+      controller: _notesController,
+      label: '社内メモ',
+      hintText: 'VIP顧客。〇〇ブランドを好む 等',
+      icon: Icons.sticky_note_2,
+      maxLines: 4,
+    );
+  }
+
+  Future<void> _pickInteractionDate() async {
+    final now = DateTime.now();
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _lastInteractionAt ?? now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 1),
+    );
+    if (pickedDate == null) return;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_lastInteractionAt ?? now),
+    );
+    setState(() {
+      _lastInteractionAt = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime?.hour ?? 0,
+        pickedTime?.minute ?? 0,
+      );
+    });
+  }
+
+  List<CustomerInteraction>? _composeInteractionPayload() {
+    final note = _interactionNoteController.text.trim();
+    if (note.isEmpty) {
+      return null;
+    }
+    return [
+      CustomerInteraction(
+        type: _interactionType,
+        note: note,
+        timestamp: (_lastInteractionAt ?? DateTime.now()).toUtc(),
+      ),
+    ];
   }
 
   Widget _buildTextField({
@@ -332,4 +677,3 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
     );
   }
 }
-

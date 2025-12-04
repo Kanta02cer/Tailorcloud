@@ -9,4 +9,3 @@ part 'api_client_provider.g.dart';
 ApiClient apiClient(ApiClientRef ref) {
   return ApiClient(baseUrl: AppConfig.baseUrl);
 }
-

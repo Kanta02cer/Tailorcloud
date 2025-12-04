@@ -28,7 +28,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   Widget build(BuildContext context) {
     // TODO: 認証からテナントIDを取得
     const tenantId = 'tenant-123'; // 仮のテナントID
-    
+
     final params = FabricListParams(
       tenantId: tenantId,
       status: _selectedStatus == 'all' ? null : _selectedStatus,
@@ -43,7 +43,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         children: [
           // 検索ヘッダー
           _buildSearchHeader(context),
-          
+
           // グリッド
           Expanded(
             child: fabricsAsync.when(
@@ -56,7 +56,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     ),
                   );
                 }
-                
+
                 return GridView.builder(
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -176,7 +176,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // フィルターボタン
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -252,7 +252,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '在庫: ${fabric.stockAmount.toStringAsFixed(1)}m',
+                        '在庫: ${fabric.stockAmount?.toStringAsFixed(1) ?? "0.0"}m',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -264,9 +264,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // アクションボタン
             SizedBox(
               width: double.infinity,
@@ -289,4 +289,3 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     );
   }
 }
-

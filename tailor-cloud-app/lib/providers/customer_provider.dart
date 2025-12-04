@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/customer.dart';
-import '../services/api_client.dart';
 import 'api_client_provider.dart';
 
 part 'customer_provider.g.dart';
@@ -44,14 +43,15 @@ Future<List<Customer>> customerList(
 ) async {
   final apiClient = ref.watch(apiClientProvider);
 
-  final response = await apiClient.get<List<dynamic>>(
+  final response = await apiClient.get<Map<String, dynamic>>(
     '/api/customers',
     queryParameters: {
       'tenant_id': tenantId,
     },
   );
 
-  return response
+  final customersJson = response['customers'] as List<dynamic>? ?? const [];
+  return customersJson
       .map((json) => Customer.fromJson(json as Map<String, dynamic>))
       .toList();
 }
@@ -72,4 +72,3 @@ Future<Customer> updateCustomer(
 
   return Customer.fromJson(response);
 }
-

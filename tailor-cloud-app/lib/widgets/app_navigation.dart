@@ -38,7 +38,7 @@ class AppNavigation extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 24),
-          
+
           // ロゴ
           Container(
             width: 40,
@@ -62,9 +62,9 @@ class AppNavigation extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 32),
-          
+
           // ナビゲーションアイテム
           _buildNavItem(
             context,
@@ -72,45 +72,45 @@ class AppNavigation extends StatelessWidget {
             label: 'Home',
             item: NavigationItem.dashboard,
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           _buildNavItem(
             context,
             icon: Icons.people,
             label: 'Customer',
             item: NavigationItem.customers,
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           _buildNavItem(
             context,
             icon: Icons.shopping_cart,
             label: 'Orders',
             item: NavigationItem.orders,
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           _buildNavItem(
             context,
             icon: Icons.inventory_2,
             label: 'Fabric',
             item: NavigationItem.inventory,
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           _buildNavItem(
             context,
             icon: Icons.create,
             label: 'Order',
             item: NavigationItem.ordering,
           ),
-          
+
           const Spacer(),
-          
+
           // 設定
           _buildNavItem(
             context,
@@ -118,7 +118,7 @@ class AppNavigation extends StatelessWidget {
             label: '',
             item: NavigationItem.settings,
           ),
-          
+
           const SizedBox(height: 24),
         ],
       ),
@@ -132,7 +132,7 @@ class AppNavigation extends StatelessWidget {
     required NavigationItem item,
   }) {
     final isSelected = selected == item;
-    
+
     return InkWell(
       onTap: () => onItemSelected(item),
       child: Column(
@@ -171,4 +171,3 @@ class AppNavigation extends StatelessWidget {
     );
   }
 }
-

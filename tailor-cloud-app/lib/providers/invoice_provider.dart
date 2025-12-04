@@ -43,4 +43,3 @@ Future<InvoiceResponse> generateInvoice(
 
   return InvoiceResponse.fromJson(response);
 }
-

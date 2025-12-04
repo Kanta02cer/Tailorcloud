@@ -17,11 +17,12 @@ class EnterpriseColors {
   static const Color statusAvailable = Color(0xFF10B981); // 緑
   static const Color statusLowStock = Color(0xFFF59E0B); // 黄色
   static const Color statusOutOfStock = Color(0xFFEF4444); // 赤
-  
+
   // Action Colors
   static const Color primaryBlue = Color(0xFF3B82F6); // プライマリブルー
   static const Color errorRed = Color(0xFFEF4444); // エラー赤（statusOutOfStockと同じ）
-  static const Color successGreen = Color(0xFF10B981); // 成功緑（statusAvailableと同じ）
+  static const Color successGreen =
+      Color(0xFF10B981); // 成功緑（statusAvailableと同じ）
 
   // Text Colors
   static const Color textPrimary = Color(0xFFE5E5E5);
@@ -39,7 +40,6 @@ ThemeData enterpriseTheme() {
     useMaterial3: true,
     brightness: Brightness.dark,
     scaffoldBackgroundColor: EnterpriseColors.deepBlack,
-    
     colorScheme: ColorScheme.dark(
       primary: EnterpriseColors.metallicGold,
       secondary: EnterpriseColors.metallicGoldDark,
@@ -47,7 +47,6 @@ ThemeData enterpriseTheme() {
       background: EnterpriseColors.deepBlack,
       error: EnterpriseColors.statusOutOfStock,
     ),
-    
     textTheme: const TextTheme(
       displayLarge: TextStyle(
         fontSize: 32,
@@ -76,7 +75,6 @@ ThemeData enterpriseTheme() {
         letterSpacing: 0.2,
       ),
     ),
-    
     cardTheme: CardThemeData(
       color: EnterpriseColors.regalisBlack,
       elevation: 0,
@@ -88,7 +86,6 @@ ThemeData enterpriseTheme() {
         ),
       ),
     ),
-    
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: EnterpriseColors.metallicGold,
@@ -100,7 +97,6 @@ ThemeData enterpriseTheme() {
         elevation: 0,
       ),
     ),
-    
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: EnterpriseColors.regalisBlack,
@@ -123,4 +119,3 @@ ThemeData enterpriseTheme() {
     ),
   );
 }
-

@@ -106,4 +106,3 @@ class ConfirmOrderRequest with _$ConfirmOrderRequest {
   factory ConfirmOrderRequest.fromJson(Map<String, dynamic> json) =>
       _$ConfirmOrderRequestFromJson(json);
 }
-
