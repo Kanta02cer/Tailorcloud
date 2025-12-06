@@ -1,0 +1,25 @@
+# TailorCloud Backend - Render Configuration
+
+# Build settings
+build:
+  command: cd tailor-cloud-backend && go build -o main ./cmd/api
+  
+# Start command
+start:
+  command: ./tailor-cloud-backend/main
+
+# Environment variables
+env:
+  - key: PORT
+    value: 8080
+  - key: GCP_PROJECT_ID
+    value: gen-lang-client-0552849356
+  - key: DEFAULT_TENANT_ID
+    value: 00000000-0000-0000-0000-000000000001
+
+# Health check
+healthCheck:
+  path: /health
+  
+# Auto-deploy
+autoDeploy: true

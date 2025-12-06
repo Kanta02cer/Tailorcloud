@@ -1,0 +1,34 @@
+# Git関連
+.git
+.gitignore
+
+# 環境変数ファイル
+.env
+.env.local
+.env.production
+
+# ドキュメント
+*.md
+docs/
+
+# テストファイル
+*_test.go
+
+# ビルド成果物
+main
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE設定
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# その他
+tmp/
+temp/
+*.log
