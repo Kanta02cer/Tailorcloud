@@ -178,6 +178,13 @@ func main() {
 		log.Println("Tenant repository initialized")
 	}
 
+	// ユーザーリポジトリ: PostgreSQLを使用
+	var userRepo repository.UserRepository
+	if db != nil {
+		userRepo = repository.NewPostgreSQLUserRepository(db)
+		log.Println("User repository initialized")
+	}
+
 	// 反物（Roll）リポジトリ: PostgreSQLを使用
 	var fabricRollRepo repository.FabricRollRepository
 	if db != nil {
@@ -339,6 +346,13 @@ func main() {
 		log.Println("Measurement validation service initialized")
 	}
 
+	// ユーザーサービス
+	var userService *service.UserService
+	if userRepo != nil && tenantRepo != nil {
+		userService = service.NewUserService(userRepo, tenantRepo)
+		log.Println("User service initialized")
+	}
+
 	// ハンドラー
 	orderHandler := handler.NewOrderHandler(orderService)
 
@@ -426,6 +440,18 @@ func main() {
 	if measurementValidationService != nil {
 		measurementValidationHandler = handler.NewMeasurementValidationHandler(measurementValidationService)
 		log.Println("Measurement validation handler initialized")
+	}
+
+	// 認証ハンドラー（Firebase Auth用）
+	var authEndpointHandler *handler.AuthHandler
+	if app != nil {
+		authHdlr, err := handler.NewAuthHandler(app, userService)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize Auth handler: %v", err)
+		} else {
+			authEndpointHandler = authHdlr
+			log.Println("Auth handler initialized")
+		}
 	}
 
 	// 4. Routing
@@ -568,6 +594,12 @@ func main() {
 	// Metrics (メトリクス) endpoint
 	metricsHandler := handler.NewMetricsHandler(metricsCollector)
 	mux.HandleFunc("GET /api/metrics", chainMiddleware(metricsHandler.GetMetrics))
+
+	// Auth (認証) endpoints
+	if authEndpointHandler != nil {
+		mux.HandleFunc("POST /api/auth/verify", chainMiddleware(authEndpointHandler.VerifyToken))
+		log.Println("Auth endpoints registered")
+	}
 
 	// Health Check (監視ミドルウェアは適用しない)
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {

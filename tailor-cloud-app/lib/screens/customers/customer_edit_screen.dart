@@ -190,8 +190,8 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-              // 顧客名（必須）
-              _buildTextField(
+                  // 顧客名（必須）
+                  _buildTextField(
                 controller: _nameController,
                 label: '顧客名',
                 hintText: '田中 太郎',
@@ -205,10 +205,10 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                 },
               ),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              // カナ名（任意）
-              _buildTextField(
+                  // カナ名（任意）
+                  _buildTextField(
                 controller: _nameKanaController,
                 label: 'カナ名',
                 hintText: 'タナカ タロウ',
@@ -216,10 +216,10 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                 required: false,
               ),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              // メールアドレス（任意）
-              _buildTextField(
+                  // メールアドレス（任意）
+                  _buildTextField(
                 controller: _emailController,
                 label: 'メールアドレス',
                 hintText: 'tanaka@example.com',
@@ -236,10 +236,10 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                 },
               ),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              // 電話番号（任意）
-              _buildTextField(
+                  // 電話番号（任意）
+                  _buildTextField(
                 controller: _phoneController,
                 label: '電話番号',
                 hintText: '090-1234-5678',
@@ -248,10 +248,10 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                 required: false,
               ),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              // 住所（任意）
-              _buildTextField(
+                  // 住所（任意）
+                  _buildTextField(
                 controller: _addressController,
                 label: '住所',
                 hintText: '東京都渋谷区...',
@@ -260,34 +260,34 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                 required: false,
               ),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              _buildStatusSelector(),
+                  _buildStatusSelector(),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              _buildTagEditor(),
+                  _buildTagEditor(),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              _buildMetricFields(),
+                  _buildMetricFields(),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              _buildChannelFields(),
+                  _buildChannelFields(),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              _buildInteractionSection(),
+                  _buildInteractionSection(),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              _buildNotesField(),
+                  _buildNotesField(),
 
-              const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-              // 更新ボタン
-              ElevatedButton(
+                  // 更新ボタン
+                  ElevatedButton(
                 onPressed: _isLoading ? null : _updateCustomer,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: EnterpriseColors.primaryBlue,
@@ -313,8 +313,8 @@ class _CustomerEditScreenState extends ConsumerState<CustomerEditScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-              ),
-            ],
+                  ),
+                ],
           ),
         ),
       ),

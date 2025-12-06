@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../config/app_config.dart';
 import '../../config/enterprise_theme.dart';
 import '../../providers/auth_provider.dart';
 
@@ -283,9 +284,55 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
 
+                    // Googleログイン（Firebase有効時のみ表示）
+                    if (AppConfig.enableFirebase) ...[
+                      Row(
+                        children: const [
+                          Expanded(
+                            child: Divider(color: EnterpriseColors.borderGray),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              'または',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: EnterpriseColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(color: EnterpriseColors.borderGray),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _handleGoogleLogin,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(
+                            color: EnterpriseColors.metallicGold,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        icon: const Icon(
+                          Icons.login,
+                          color: EnterpriseColors.metallicGold,
+                        ),
+                        label: const Text(
+                          'Google アカウントでログイン',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
                     // 開発用メッセージ
                     Text(
-                      'メール/パスワードでログインしてください',
+                      AppConfig.enableFirebase
+                          ? 'メール/パスワードまたはGoogleでログインできます'
+                          : 'メール/パスワードでログインしてください',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -300,5 +347,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await signInWithGoogle(ref);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Googleログインに成功しました'),
+            backgroundColor: EnterpriseColors.successGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        String errorMessage = 'Googleログインに失敗しました';
+        final errorString = e.toString().toLowerCase();
+        if (errorString.contains('domain')) {
+          errorMessage = e.toString();
+        } else if (errorString.contains('network')) {
+          errorMessage = 'ネットワークエラーが発生しました';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: EnterpriseColors.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 }

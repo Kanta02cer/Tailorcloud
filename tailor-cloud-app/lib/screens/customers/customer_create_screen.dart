@@ -152,134 +152,114 @@ class _CustomerCreateScreenState extends ConsumerState<CustomerCreateScreen> {
               constraints: BoxConstraints(
                 maxWidth: Responsive.formMaxWidth(context),
               ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 顧客名（必須）
-              _buildTextField(
-                controller: _nameController,
-                label: '顧客名',
-                hintText: '田中 太郎',
-                icon: Icons.person,
-                required: true,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '顧客名を入力してください';
-                  }
-                  return null;
-                },
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // カナ名（任意）
-              _buildTextField(
-                controller: _nameKanaController,
-                label: 'カナ名',
-                hintText: 'タナカ タロウ',
-                icon: Icons.text_fields,
-                required: false,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // メールアドレス（任意）
-              _buildTextField(
-                controller: _emailController,
-                label: 'メールアドレス',
-                hintText: 'tanaka@example.com',
-                icon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
-                required: false,
-                validator: (value) {
-                  if (value != null && value.trim().isNotEmpty) {
-                    if (!value.contains('@')) {
-                      return '有効なメールアドレスを入力してください';
-                    }
-                  }
-                  return null;
-                },
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 電話番号（任意）
-              _buildTextField(
-                controller: _phoneController,
-                label: '電話番号',
-                hintText: '090-1234-5678',
-                icon: Icons.phone,
-                keyboardType: TextInputType.phone,
-                required: false,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 住所（任意）
-              _buildTextField(
-                controller: _addressController,
-                label: '住所',
-                hintText: '東京都渋谷区...',
-                icon: Icons.location_on,
-                maxLines: 3,
-                required: false,
-              ),
-
-              const SizedBox(height: 16),
-
-              _buildStatusSelector(),
-
-              const SizedBox(height: 16),
-
-              _buildTagEditor(),
-
-              const SizedBox(height: 16),
-
-              _buildMetricFields(),
-
-              const SizedBox(height: 16),
-
-              _buildChannelFields(),
-
-              const SizedBox(height: 16),
-
-              _buildInteractionSection(),
-
-              const SizedBox(height: 16),
-
-              _buildNotesField(),
-              
-              const SizedBox(height: 32),
-              
-              // 保存ボタン
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveCustomer,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: EnterpriseColors.primaryBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 顧客名（必須）
+                  _buildTextField(
+                    controller: _nameController,
+                    label: '顧客名',
+                    hintText: '田中 太郎',
+                    icon: Icons.person,
+                    required: true,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return '顧客名を入力してください';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        '保存',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  const SizedBox(height: 16),
+                  // カナ名（任意）
+                  _akibuildTextField(
+                    controller: _nameKanaController,
+                    label: 'カナ名',
+                    hintText: 'タナカ タロウ',
+                    icon: Icons.text_fields,
+                    required: false,
+                  ),
+                  const SizedBox(height: 16),
+                  // メールアドレス（任意）
+                  _buildTextField(
+                    controller: _emailController,
+                    label: 'メールアドレス',
+                    hintText: 'tanaka@example.com',
+                    icon: Icons.email,
+                    keyboardType: TextInputType.emailAddress,
+                    required: false,
+                    validator: (value) {
+                      if (value != null && value.trim().isNotEmpty) {
+                        if (!value.contains('@')) {
+                          return '有効なメールアドレスを入力してください';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // 電話番号（任意）
+                  _buildTextField(
+                    controller: _phoneController,
+                    label: '電話番号',
+                    hintText: '090-1234-5678',
+                    icon: Icons.phone,
+                    keyboardType: TextInputType.phone,
+                    required: false,
+                  ),
+                  const SizedBox(height: 16),
+                  // 住所（任意）
+                  _buildTextField(
+                    controller: _addressController,
+                    label: '住所',
+                    hintText: '東京都渋谷区...',
+                    icon: Icons.location_on,
+                    maxLines: 3,
+                    required: false,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildStatusSelector(),
+                  const SizedBox(height: 16),
+                  _buildTagEditor(),
+                  const SizedBox(height: 16),
+                  _buildMetricFields(),
+                  const SizedBox(height: 16),
+                  _buildChannelFields(),
+                  const SizedBox(height: 16),
+                  _buildInteractionSection(),
+                  const SizedBox(height: 16),
+                  _buildNotesField(),
+                  const SizedBox(height: 32),
+                  // 保存ボタン
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _saveCustomer,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: EnterpriseColors.primaryBlue,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            '保存',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

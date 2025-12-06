@@ -62,6 +62,13 @@ class Environment {
     defaultValue: 'tenant-123',
   );
 
+  /// 許可するGoogle Workspaceドメイン（例: example.com）
+  /// 空文字列の場合はドメイン制限を行わない
+  static const String googleWorkspaceDomain = String.fromEnvironment(
+    'GOOGLE_WORKSPACE_DOMAIN',
+    defaultValue: '',
+  );
+
   /// デバッグログを有効にするかどうか
   static bool get enableDebugLogging => isDevelopment;
 
@@ -70,6 +77,7 @@ class Environment {
 Environment: $env
 API Base URL: $apiBaseUrl
 Firebase Enabled: $enableFirebase
+Google Workspace Domain: $googleWorkspaceDomain
 Debug Logging: $enableDebugLogging
 ''';
 }
