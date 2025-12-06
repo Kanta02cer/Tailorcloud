@@ -30,7 +30,8 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 
 # フォントファイルをコピー（PDF生成用）
-COPY --from=builder /app/fonts ./fonts
+# 注: fontsディレクトリは現在存在しないため、コメントアウト
+# COPY --from=builder /app/fonts ./fonts
 
 # ポートを公開
 EXPOSE 8080
