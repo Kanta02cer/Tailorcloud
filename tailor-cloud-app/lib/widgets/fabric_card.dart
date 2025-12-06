@@ -18,7 +18,7 @@ class FabricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(fabric.stockStatus);
-    
+
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -57,7 +57,7 @@ class FabricCard extends StatelessWidget {
                     color: EnterpriseColors.textTertiary,
                   ),
                 ),
-              
+
               // 推奨バッジ
               if (isRecommended)
                 Positioned(
@@ -84,7 +84,7 @@ class FabricCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              
+
               // 在庫ステータスバッジ
               Positioned(
                 top: isRecommended ? 24 : 12,
@@ -133,7 +133,7 @@ class FabricCard extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               // 在庫数量表示（Limitedの場合）
               if (fabric.stockStatus == StockStatus.limited)
                 Positioned(
@@ -158,7 +158,7 @@ class FabricCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              
+
               // 在庫切れオーバーレイ
               if (fabric.stockStatus == StockStatus.soldOut)
                 Positioned.fill(
@@ -188,7 +188,7 @@ class FabricCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              
+
               // 下部情報
               Positioned(
                 bottom: 0,
@@ -254,7 +254,8 @@ class FabricCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(StockStatus status) {
+  Color _getStatusColor(StockStatus? status) {
+    if (status == null) return Colors.grey;
     switch (status) {
       case StockStatus.available:
         return EnterpriseColors.statusAvailable;
@@ -265,7 +266,8 @@ class FabricCard extends StatelessWidget {
     }
   }
 
-  String _getStatusText(StockStatus status) {
+  String _getStatusText(StockStatus? status) {
+    if (status == null) return 'Unknown';
     switch (status) {
       case StockStatus.available:
         return 'Available';
@@ -276,4 +278,3 @@ class FabricCard extends StatelessWidget {
     }
   }
 }
-

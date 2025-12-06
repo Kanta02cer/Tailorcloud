@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"tailor-cloud/backend/internal/middleware"
 	"tailor-cloud/backend/internal/service"
@@ -21,11 +22,33 @@ func NewCustomerHandler(customerService *service.CustomerService) *CustomerHandl
 	}
 }
 
+type interactionPayload struct {
+	Type      string     `json:"type"`
+	Note      string     `json:"note"`
+	Staff     string     `json:"staff"`
+	Timestamp *time.Time `json:"timestamp"`
+}
+
 // CreateCustomerRequest 顧客作成リクエスト
 type CreateCustomerRequest struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Phone string `json:"phone"`
+	Name               string               `json:"name"`
+	Email              string               `json:"email"`
+	Phone              string               `json:"phone"`
+	Address            string               `json:"address"`
+	Status             string               `json:"status"`
+	Tags               []string             `json:"tags"`
+	VipRank            int                  `json:"vip_rank"`
+	LtvScore           float64              `json:"ltv_score"`
+	LifetimeValue      float64              `json:"lifetime_value"`
+	PreferredChannel   string               `json:"preferred_channel"`
+	LeadSource         string               `json:"lead_source"`
+	Notes              string               `json:"notes"`
+	Occupation         string               `json:"occupation"`
+	AnnualIncomeRange  string               `json:"annual_income_range"`
+	PreferredArchetype string               `json:"preferred_archetype"`
+	DiagnosisCount     int                  `json:"diagnosis_count"`
+	LastInteractionAt  *time.Time           `json:"last_interaction_at"`
+	Interactions       []interactionPayload `json:"interactions"`
 }
 
 // CreateCustomer POST /api/customers - 顧客を登録
@@ -54,10 +77,25 @@ func (h *CustomerHandler) CreateCustomer(w http.ResponseWriter, r *http.Request)
 
 	// サービス層で作成
 	serviceReq := &service.CreateCustomerRequest{
-		TenantID: authUser.TenantID,
-		Name:     req.Name,
-		Email:    req.Email,
-		Phone:    req.Phone,
+		TenantID:           authUser.TenantID,
+		Name:               req.Name,
+		Email:              req.Email,
+		Phone:              req.Phone,
+		Address:            req.Address,
+		CustomerStatus:     req.Status,
+		Tags:               req.Tags,
+		VIPRank:            req.VipRank,
+		LTVScore:           req.LtvScore,
+		LifetimeValue:      req.LifetimeValue,
+		PreferredChannel:   req.PreferredChannel,
+		LeadSource:         req.LeadSource,
+		Notes:              req.Notes,
+		Occupation:         req.Occupation,
+		AnnualIncomeRange:  req.AnnualIncomeRange,
+		PreferredArchetype: req.PreferredArchetype,
+		DiagnosisCount:     req.DiagnosisCount,
+		LastInteractionAt:  req.LastInteractionAt,
+		Interactions:       toInteractionInputs(req.Interactions),
 	}
 
 	customer, err := h.customerService.CreateCustomer(r.Context(), serviceReq)
@@ -172,9 +210,24 @@ func (h *CustomerHandler) ListCustomers(w http.ResponseWriter, r *http.Request) 
 
 // UpdateCustomerRequest 顧客更新リクエスト
 type UpdateCustomerRequest struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Phone string `json:"phone"`
+	Name               string               `json:"name"`
+	Email              string               `json:"email"`
+	Phone              string               `json:"phone"`
+	Address            string               `json:"address"`
+	Status             string               `json:"status"`
+	Tags               []string             `json:"tags"`
+	VipRank            int                  `json:"vip_rank"`
+	LtvScore           float64              `json:"ltv_score"`
+	LifetimeValue      float64              `json:"lifetime_value"`
+	PreferredChannel   string               `json:"preferred_channel"`
+	LeadSource         string               `json:"lead_source"`
+	Notes              string               `json:"notes"`
+	Occupation         string               `json:"occupation"`
+	AnnualIncomeRange  string               `json:"annual_income_range"`
+	PreferredArchetype string               `json:"preferred_archetype"`
+	DiagnosisCount     int                  `json:"diagnosis_count"`
+	LastInteractionAt  *time.Time           `json:"last_interaction_at"`
+	Interactions       []interactionPayload `json:"interactions"`
 }
 
 // UpdateCustomer PUT /api/customers/{id} - 顧客を更新
@@ -222,11 +275,26 @@ func (h *CustomerHandler) UpdateCustomer(w http.ResponseWriter, r *http.Request)
 
 	// サービス層で更新
 	serviceReq := &service.UpdateCustomerRequest{
-		TenantID:   authUser.TenantID,
-		CustomerID: customerID,
-		Name:       req.Name,
-		Email:      req.Email,
-		Phone:      req.Phone,
+		TenantID:           authUser.TenantID,
+		CustomerID:         customerID,
+		Name:               req.Name,
+		Email:              req.Email,
+		Phone:              req.Phone,
+		Address:            req.Address,
+		CustomerStatus:     req.Status,
+		Tags:               req.Tags,
+		VIPRank:            req.VipRank,
+		LTVScore:           req.LtvScore,
+		LifetimeValue:      req.LifetimeValue,
+		PreferredChannel:   req.PreferredChannel,
+		LeadSource:         req.LeadSource,
+		Notes:              req.Notes,
+		Occupation:         req.Occupation,
+		AnnualIncomeRange:  req.AnnualIncomeRange,
+		PreferredArchetype: req.PreferredArchetype,
+		DiagnosisCount:     req.DiagnosisCount,
+		LastInteractionAt:  req.LastInteractionAt,
+		Interactions:       toInteractionInputs(req.Interactions),
 	}
 
 	customer, err := h.customerService.UpdateCustomer(r.Context(), serviceReq)
@@ -353,3 +421,18 @@ func (h *CustomerHandler) GetCustomerOrders(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(response)
 }
 
+func toInteractionInputs(payloads []interactionPayload) []service.CustomerInteractionInput {
+	if len(payloads) == 0 {
+		return nil
+	}
+	inputs := make([]service.CustomerInteractionInput, 0, len(payloads))
+	for _, payload := range payloads {
+		inputs = append(inputs, service.CustomerInteractionInput{
+			Type:      payload.Type,
+			Note:      payload.Note,
+			Staff:     payload.Staff,
+			Timestamp: payload.Timestamp,
+		})
+	}
+	return inputs
+}

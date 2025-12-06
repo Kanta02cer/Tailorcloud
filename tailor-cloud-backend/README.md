@@ -46,7 +46,15 @@ tailor-cloud-backend/
 ```bash
 export GCP_PROJECT_ID="your-gcp-project-id"
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
+export DEFAULT_TENANT_ID="00000000-0000-0000-0000-000000000001"  # デフォルトテナントID
 export PORT="8080"  # オプション（デフォルト: 8080）
+```
+
+### 1.1. 認証システムのセットアップ
+
+```bash
+# デフォルトテナントの作成と環境確認
+./scripts/setup_auth.sh
 ```
 
 ### 2. 依存関係のインストール
@@ -61,12 +69,22 @@ go mod download
 go run cmd/api/main.go
 ```
 
-### 4. Dockerビルド
+### 4. 認証エンドポイントのテスト
+
+```bash
+# 認証エンドポイントをテスト（Firebase IDトークンが必要）
+./scripts/test_auth.sh <firebase-id-token>
+```
+
+詳細は [認証システム ドキュメント](./docs/AUTHENTICATION.md) と [動作確認ガイド](./docs/AUTH_TESTING.md) を参照してください。
+
+### 5. Dockerビルド
 
 ```bash
 docker build -t tailor-cloud-backend .
 docker run -p 8080:8080 \
   -e GCP_PROJECT_ID=your-project-id \
+  -e DEFAULT_TENANT_ID=00000000-0000-0000-0000-000000000001 \
   -e GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json \
   tailor-cloud-backend
 ```

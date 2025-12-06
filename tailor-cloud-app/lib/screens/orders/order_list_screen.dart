@@ -55,39 +55,37 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
         children: [
           // フィルター・検索バー
           _buildFilterBar(),
-          
+
           // 注文リスト
           Expanded(
             child: ordersAsync.when(
               data: (orders) {
                 // フィルター適用
                 var filteredOrders = orders;
-                
+
                 // 顧客IDフィルター
                 if (widget.customerId != null) {
                   filteredOrders = filteredOrders
                       .where((order) => order.customerId == widget.customerId)
                       .toList();
                 }
-                
+
                 // ステータスフィルター
                 if (_selectedStatus != null) {
                   filteredOrders = filteredOrders
                       .where((order) => order.status.name == _selectedStatus)
                       .toList();
                 }
-                
+
                 // 検索フィルター
                 if (_searchQuery.isNotEmpty) {
-                  filteredOrders = filteredOrders
-                      .where((order) {
-                        // 注文ID、顧客ID、金額などで検索
-                        final query = _searchQuery.toLowerCase();
-                        return order.id.toLowerCase().contains(query) ||
-                            order.customerId.toLowerCase().contains(query) ||
-                            order.totalAmount.toString().contains(query);
-                      })
-                      .toList();
+                  filteredOrders = filteredOrders.where((order) {
+                    // 注文ID、顧客ID、金額などで検索
+                    final query = _searchQuery.toLowerCase();
+                    return order.id.toLowerCase().contains(query) ||
+                        order.customerId.toLowerCase().contains(query) ||
+                        order.totalAmount.toString().contains(query);
+                  }).toList();
                 }
 
                 if (filteredOrders.isEmpty) {
@@ -231,9 +229,9 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
               });
             },
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // ステータスフィルター
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -271,9 +269,7 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
       selectedColor: EnterpriseColors.primaryBlue,
       checkmarkColor: Colors.white,
       labelStyle: TextStyle(
-        color: isSelected
-            ? Colors.white
-            : EnterpriseColors.textPrimary,
+        color: isSelected ? Colors.white : EnterpriseColors.textPrimary,
         fontSize: 12,
       ),
       backgroundColor: EnterpriseColors.deepBlack,
@@ -323,9 +319,9 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                   _buildStatusBadge(order.status),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // 顧客ID
               Text(
                 '顧客ID: ${order.customerId}',
@@ -334,9 +330,9 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                   fontSize: 14,
                 ),
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               // 金額
               Text(
                 order.amountDisplay,
@@ -346,9 +342,9 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               // 納期・支払期日
               Row(
                 children: [
@@ -436,4 +432,3 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
     return '${date.year}/${date.month}/${date.day}';
   }
 }
-

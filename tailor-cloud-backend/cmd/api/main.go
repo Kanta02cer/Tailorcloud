@@ -178,6 +178,13 @@ func main() {
 		log.Println("Tenant repository initialized")
 	}
 
+	// ユーザーリポジトリ: PostgreSQLを使用
+	var userRepo repository.UserRepository
+	if db != nil {
+		userRepo = repository.NewPostgreSQLUserRepository(db)
+		log.Println("User repository initialized")
+	}
+
 	// 反物（Roll）リポジトリ: PostgreSQLを使用
 	var fabricRollRepo repository.FabricRollRepository
 	if db != nil {
@@ -228,6 +235,13 @@ func main() {
 	if customerRepo != nil && orderRepo != nil {
 		customerService = service.NewCustomerService(customerRepo, orderRepo)
 		log.Println("Customer service initialized")
+	}
+
+	// アナリティクスサービス
+	var analyticsService *service.AnalyticsService
+	if orderRepo != nil && customerRepo != nil {
+		analyticsService = service.NewAnalyticsService(orderRepo, customerRepo)
+		log.Println("Analytics service initialized")
 	}
 
 	// 在庫引当サービス（エンタープライズ実装の核心）
@@ -332,6 +346,13 @@ func main() {
 		log.Println("Measurement validation service initialized")
 	}
 
+	// ユーザーサービス
+	var userService *service.UserService
+	if userRepo != nil && tenantRepo != nil {
+		userService = service.NewUserService(userRepo, tenantRepo)
+		log.Println("User service initialized")
+	}
+
 	// ハンドラー
 	orderHandler := handler.NewOrderHandler(orderService)
 
@@ -356,6 +377,13 @@ func main() {
 	if customerService != nil {
 		customerHandler = handler.NewCustomerHandler(customerService)
 		log.Println("Customer handler initialized")
+	}
+
+	// アナリティクスハンドラー
+	var analyticsHandler *handler.AnalyticsHandler
+	if analyticsService != nil {
+		analyticsHandler = handler.NewAnalyticsHandler(analyticsService)
+		log.Println("Analytics handler initialized")
 	}
 
 	// 反物（Roll）ハンドラー
@@ -412,6 +440,18 @@ func main() {
 	if measurementValidationService != nil {
 		measurementValidationHandler = handler.NewMeasurementValidationHandler(measurementValidationService)
 		log.Println("Measurement validation handler initialized")
+	}
+
+	// 認証ハンドラー（Firebase Auth用）
+	var authEndpointHandler *handler.AuthHandler
+	if app != nil {
+		authHdlr, err := handler.NewAuthHandler(app, userService)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize Auth handler: %v", err)
+		} else {
+			authEndpointHandler = authHdlr
+			log.Println("Auth handler initialized")
+		}
 	}
 
 	// 4. Routing
@@ -493,6 +533,11 @@ func main() {
 		mux.HandleFunc("GET /api/customers/{id}/orders", authChainMiddleware(customerHandler.GetCustomerOrders))
 	}
 
+	// Analytics endpoints
+	if analyticsHandler != nil {
+		mux.HandleFunc("GET /api/analytics/summary", authChainMiddleware(analyticsHandler.GetSummary))
+	}
+
 	// Fabric Roll (反物管理) endpoints
 	if fabricRollHandler != nil {
 		mux.HandleFunc("POST /api/fabric-rolls", authChainMiddleware(rbacMiddleware.RequireOwnerOrStaff()(fabricRollHandler.CreateFabricRoll)))
@@ -549,6 +594,12 @@ func main() {
 	// Metrics (メトリクス) endpoint
 	metricsHandler := handler.NewMetricsHandler(metricsCollector)
 	mux.HandleFunc("GET /api/metrics", chainMiddleware(metricsHandler.GetMetrics))
+
+	// Auth (認証) endpoints
+	if authEndpointHandler != nil {
+		mux.HandleFunc("POST /api/auth/verify", chainMiddleware(authEndpointHandler.VerifyToken))
+		log.Println("Auth endpoints registered")
+	}
 
 	// Health Check (監視ミドルウェアは適用しない)
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {

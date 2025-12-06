@@ -66,9 +66,15 @@ class CustomerDetailScreen extends ConsumerWidget {
             children: [
               // 顧客情報カード
               _buildCustomerInfoCard(context, customer),
-              
+
               const SizedBox(height: 24),
-              
+
+              if (customer.interactionNotes.isNotEmpty)
+                _buildInteractionTimeline(customer),
+
+              if (customer.interactionNotes.isNotEmpty)
+                const SizedBox(height: 24),
+
               // 注文履歴セクション
               _buildOrdersSection(context, customer),
             ],
@@ -170,17 +176,61 @@ class CustomerDetailScreen extends ConsumerWidget {
                           ),
                         ),
                       ],
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          _buildStatusChip(customer.status ?? 'lead'),
+                          if (customer.vipRank != null)
+                            Chip(
+                              backgroundColor: EnterpriseColors.surfaceGray,
+                              label: Text('VIP ${customer.vipRank}'),
+                            ),
+                          if (customer.lifetimeValue != null)
+                            Chip(
+                              backgroundColor: EnterpriseColors.surfaceGray,
+                              label: Text(
+                                'LTV ¥${customer.lifetimeValue!.toStringAsFixed(0)}',
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-            
+
             const Divider(
               color: EnterpriseColors.borderGray,
               height: 32,
             ),
-            
+
+            if (customer.tags.isNotEmpty) ...[
+              const Text(
+                'タグ',
+                style: TextStyle(
+                  color: EnterpriseColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: customer.tags
+                    .map(
+                      (tag) => Chip(
+                        label: Text(tag),
+                        backgroundColor: EnterpriseColors.deepBlack,
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // 連絡先情報
             if (customer.email != null) ...[
               _buildInfoRow(
@@ -206,13 +256,21 @@ class CustomerDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
             ],
-            
+
             // 登録日時
             _buildInfoRow(
               icon: Icons.calendar_today,
               label: '登録日',
               value: _formatDate(customer.createdAt),
             ),
+            if (customer.notes != null && customer.notes!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _buildInfoRow(
+                icon: Icons.note_alt,
+                label: '社内メモ',
+                value: customer.notes!,
+              ),
+            ],
           ],
         ),
       ),
@@ -256,6 +314,79 @@ class CustomerDetailScreen extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    Color color;
+    switch (status) {
+      case 'vip':
+        color = EnterpriseColors.metallicGold;
+        break;
+      case 'active':
+        color = EnterpriseColors.statusAvailable;
+        break;
+      case 'prospect':
+        color = EnterpriseColors.primaryBlue;
+        break;
+      case 'inactive':
+        color = EnterpriseColors.textSecondary;
+        break;
+      default:
+        color = EnterpriseColors.statusLowStock;
+    }
+    return Chip(
+      label: Text(status.toUpperCase()),
+      backgroundColor: color.withOpacity(0.2),
+      labelStyle: TextStyle(
+        color: color,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildInteractionTimeline(Customer customer) {
+    return Card(
+      color: EnterpriseColors.surfaceGray,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'コンタクト履歴',
+              style: TextStyle(
+                color: EnterpriseColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...customer.interactionNotes.map(
+              (note) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.bubble_chart,
+                  color: EnterpriseColors.primaryBlue,
+                  size: 20,
+                ),
+                title: Text(
+                  note.note,
+                  style: const TextStyle(color: EnterpriseColors.textPrimary),
+                ),
+                subtitle: Text(
+                  '${note.type.toUpperCase()} • ${_formatDate(note.timestamp)}'
+                  '${note.staff != null ? ' • ${note.staff}' : ''}',
+                  style: const TextStyle(
+                    color: EnterpriseColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -316,7 +447,7 @@ class CustomerDetailScreen extends ConsumerWidget {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.year}年${date.month}月${date.day}日';
+    final local = date.toLocal();
+    return '${local.year}年${local.month}月${local.day}日';
   }
 }
-

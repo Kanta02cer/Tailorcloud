@@ -36,7 +36,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               });
             },
           ),
-          
+
           // メインコンテンツ
           Expanded(
             child: _buildContent(),
@@ -210,4 +210,3 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     );
   }
 }
-

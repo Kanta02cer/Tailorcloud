@@ -76,6 +76,14 @@ app.*.map.json
 **/ios/Runner/GoogleService-Info.plist
 **/android/app/google-services.json
 
+# Environment variables (機密情報を含むため)
+config/*.env
+!config/*.env.example
+.env.local
+.env.production
+.env.staging
+.env.development
+
 # Build files
 *.g.dart
 *.freezed.dart

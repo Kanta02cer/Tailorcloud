@@ -1,0 +1,9 @@
+# Use Dockerfile for building
+[phases.setup]
+nixPkgs = []
+
+[phases.build]
+cmds = []
+
+[start]
+cmd = "./main"

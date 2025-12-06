@@ -38,7 +38,7 @@ class KPICard extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 8),
-            
+
             // 値
             Text(
               value,
@@ -46,7 +46,7 @@ class KPICard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            
+
             // サブタイトルまたはトレンド
             if (subtitle != null) ...[
               const SizedBox(height: 8),
@@ -55,7 +55,7 @@ class KPICard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-            
+
             // トレンド表示
             if (trendText != null && trendColor != null) ...[
               const SizedBox(height: 8),
@@ -76,7 +76,7 @@ class KPICard extends StatelessWidget {
                 ],
               ),
             ],
-            
+
             // 進捗バー（複数の色）
             if (progressColors != null && progressColors!.isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -95,11 +95,9 @@ class KPICard extends StatelessWidget {
                     .toList(),
               ),
             ],
-            
           ],
         ),
       ),
     );
   }
 }
-

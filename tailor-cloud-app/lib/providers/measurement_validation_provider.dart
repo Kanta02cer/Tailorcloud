@@ -28,10 +28,17 @@ class ValidationAlert {
   factory ValidationAlert.fromJson(Map<String, dynamic> json) {
     return ValidationAlert(
       field: json['field'] as String,
-      current: json['current'] != null ? (json['current'] as num).toDouble() : null,
-      previous: json['previous'] != null ? (json['previous'] as num).toDouble() : null,
-      difference: json['difference'] != null ? (json['difference'] as num).toDouble() : null,
-      threshold: json['threshold'] != null ? (json['threshold'] as num).toDouble() : null,
+      current:
+          json['current'] != null ? (json['current'] as num).toDouble() : null,
+      previous: json['previous'] != null
+          ? (json['previous'] as num).toDouble()
+          : null,
+      difference: json['difference'] != null
+          ? (json['difference'] as num).toDouble()
+          : null,
+      threshold: json['threshold'] != null
+          ? (json['threshold'] as num).toDouble()
+          : null,
       severity: json['severity'] as String,
       message: json['message'] as String,
     );
@@ -58,8 +65,9 @@ class ValidationResponse {
     return ValidationResponse(
       isValid: json['is_valid'] as bool? ?? true,
       alerts: (json['alerts'] as List<dynamic>?)
-          ?.map((e) => ValidationAlert.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((e) => ValidationAlert.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       hasWarnings: json['has_warnings'] as bool? ?? false,
       hasErrors: json['has_errors'] as bool? ?? false,
       previousData: json['previous_data'] as Map<String, dynamic>?,
@@ -116,4 +124,3 @@ Future<ValidationResponse> validateMeasurementRange(
 
   return ValidationResponse.fromJson(response);
 }
-

@@ -124,4 +124,3 @@ extension CommissionExtension on Commission {
     }
   }
 }
-

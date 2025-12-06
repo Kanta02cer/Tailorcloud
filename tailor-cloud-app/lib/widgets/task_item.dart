@@ -57,7 +57,7 @@ class TaskItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // テキスト情報
               Expanded(
                 child: Column(
@@ -77,7 +77,7 @@ class TaskItem extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               // アクションボタン
               if (actionLabel != null)
                 TextButton(
@@ -104,4 +104,3 @@ class TaskItem extends StatelessWidget {
     );
   }
 }
-

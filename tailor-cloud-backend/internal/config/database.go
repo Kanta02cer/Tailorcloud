@@ -41,7 +41,14 @@ func getEnv(key, defaultValue string) string {
 }
 
 // BuildConnectionString 接続文字列を構築
+// DATABASE_URL環境変数が設定されている場合はそれを優先的に使用
 func (c *DatabaseConfig) BuildConnectionString() string {
+	// DATABASE_URL環境変数が設定されている場合はそれを使用（Render, Heroku等のクラウドプラットフォーム対応）
+	if databaseURL := os.Getenv("DATABASE_URL"); databaseURL != "" {
+		return databaseURL
+	}
+	
+	// DATABASE_URLが設定されていない場合は個別の環境変数から構築
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode,

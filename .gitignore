@@ -30,6 +30,10 @@ go/pkg/
 vendor/
 main
 api
+tailor-cloud-backend/api
+tailor-cloud-backend/main
+**/bin/
+**/pkg/
 
 # Flutter/Dart
 .dart_tool/
@@ -78,6 +82,11 @@ dist-ssr/
 .env
 .env.local
 .env.*.local
+config/*.env
+tailor-cloud-app/config/*.env
+tailor-cloud-backend/config/*.env
+*.env
+!*.env.example
 
 # Credentials and secrets (do not commit)
 docs/113_Vercel_Credentials_Setup.md

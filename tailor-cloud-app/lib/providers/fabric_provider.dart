@@ -89,4 +89,3 @@ Future<void> reserveFabric(
     request.toJson(),
   );
 }
-

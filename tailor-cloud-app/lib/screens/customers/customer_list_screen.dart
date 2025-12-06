@@ -50,7 +50,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
         children: [
           // 検索バー
           _buildSearchBar(),
-          
+
           // 顧客リスト
           Expanded(
             child: customersAsync.when(
@@ -61,16 +61,16 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                     : customers.where((customer) {
                         final query = _searchQuery.toLowerCase();
                         return customer.name.toLowerCase().contains(query) ||
-                            (customer.email?.toLowerCase().contains(query) ?? false) ||
-                            (customer.phone?.contains(_searchQuery) ?? false);
+                            (customer.email?.toLowerCase().contains(query) ??
+                                false) ||
+                            (customer.phone?.contains(_searchQuery) ?? false) ||
+                            customer.tags.any((tag) => tag.contains(query));
                       }).toList();
 
                 if (filteredCustomers.isEmpty) {
                   return Center(
                     child: Text(
-                      _searchQuery.isEmpty
-                          ? '顧客が登録されていません'
-                          : '検索結果が見つかりませんでした',
+                      _searchQuery.isEmpty ? '顧客が登録されていません' : '検索結果が見つかりませんでした',
                       style: const TextStyle(
                         color: EnterpriseColors.textSecondary,
                         fontSize: 16,
@@ -256,7 +256,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // 顧客情報
               Expanded(
                 child: Column(
@@ -269,6 +269,24 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        _buildStatusChip(customer),
+                        if (customer.tags.isNotEmpty)
+                          ...customer.tags.take(3).map(
+                                (tag) => Chip(
+                                  label: Text(tag),
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  labelStyle: const TextStyle(fontSize: 10),
+                                  backgroundColor: EnterpriseColors.deepBlack,
+                                ),
+                              ),
+                      ],
                     ),
                     if (customer.email != null) ...[
                       const SizedBox(height: 4),
@@ -293,7 +311,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                   ],
                 ),
               ),
-              
+
               // 矢印アイコン
               const Icon(
                 Icons.chevron_right,
@@ -305,5 +323,37 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
       ),
     );
   }
-}
 
+  Widget _buildStatusChip(Customer customer) {
+    final status = (customer.status ?? 'lead').toUpperCase();
+    Color color;
+    switch (customer.status) {
+      case 'vip':
+        color = EnterpriseColors.metallicGold;
+        break;
+      case 'active':
+        color = EnterpriseColors.statusAvailable;
+        break;
+      case 'prospect':
+        color = EnterpriseColors.primaryBlue;
+        break;
+      default:
+        color = EnterpriseColors.statusLowStock;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}

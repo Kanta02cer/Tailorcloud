@@ -22,8 +22,8 @@ class PdfDownloadService {
 
       // PDFをダウンロード
       final response = await http.get(Uri.parse(url)).timeout(
-        const Duration(seconds: 30),
-      );
+            const Duration(seconds: 30),
+          );
 
       if (response.statusCode != 200) {
         throw Exception('PDFのダウンロードに失敗しました: ${response.statusCode}');
@@ -73,4 +73,3 @@ class PdfDownloadService {
     // 実装は呼び出し側で行う（url_launcherを使用）
   }
 }
-

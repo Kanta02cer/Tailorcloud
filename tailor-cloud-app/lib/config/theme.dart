@@ -82,21 +82,18 @@ ThemeData appTheme() {
     primaryColor: AppColors.primaryNavy,
     scaffoldBackgroundColor: AppColors.backgroundCream,
     fontFamily: 'NotoSansJP',
-    
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primaryNavy,
       primary: AppColors.primaryNavy,
       secondary: AppColors.accentGold,
       surface: AppColors.backgroundWhite,
     ),
-    
     textTheme: const TextTheme(
       headlineLarge: AppTextStyles.h1,
       headlineMedium: AppTextStyles.h2,
       bodyLarge: AppTextStyles.body,
       bodySmall: AppTextStyles.caption,
     ),
-    
     cardTheme: CardThemeData(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -104,7 +101,6 @@ ThemeData appTheme() {
       ),
       color: AppColors.backgroundWhite,
     ),
-    
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primaryNavy,
@@ -117,4 +113,3 @@ ThemeData appTheme() {
     ),
   );
 }
-
