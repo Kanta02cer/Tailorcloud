@@ -56,6 +56,24 @@ class Environment {
     defaultValue: '',
   );
 
+  /// Firebase Auth Domain（オプショナル、未設定時は自動生成）
+  static const String firebaseAuthDomain = String.fromEnvironment(
+    'FIREBASE_AUTH_DOMAIN',
+    defaultValue: '',
+  );
+
+  /// Firebase Storage Bucket（オプショナル、未設定時は自動生成）
+  static const String firebaseStorageBucket = String.fromEnvironment(
+    'FIREBASE_STORAGE_BUCKET',
+    defaultValue: '',
+  );
+
+  /// Firebase Measurement ID（Analytics用、オプショナル）
+  static const String firebaseMeasurementId = String.fromEnvironment(
+    'FIREBASE_MEASUREMENT_ID',
+    defaultValue: '',
+  );
+
   /// デフォルトテナントID
   static const String defaultTenantId = String.fromEnvironment(
     'DEFAULT_TENANT_ID',

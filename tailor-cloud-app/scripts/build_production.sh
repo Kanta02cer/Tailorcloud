@@ -58,6 +58,16 @@ if [ "$ENABLE_FIREBASE" = "true" ]; then
         if [ -n "$FIREBASE_MESSAGING_SENDER_ID" ]; then
             BUILD_ARGS+=("--dart-define=FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID")
         fi
+        # オプショナルなFirebase設定
+        if [ -n "$FIREBASE_AUTH_DOMAIN" ]; then
+            BUILD_ARGS+=("--dart-define=FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN")
+        fi
+        if [ -n "$FIREBASE_STORAGE_BUCKET" ]; then
+            BUILD_ARGS+=("--dart-define=FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET")
+        fi
+        if [ -n "$FIREBASE_MEASUREMENT_ID" ]; then
+            BUILD_ARGS+=("--dart-define=FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID")
+        fi
     else
         echo "⚠️  警告: Firebaseが有効ですが、設定が不完全です。Firebaseなしでビルドします。"
     fi

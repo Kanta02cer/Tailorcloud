@@ -34,9 +34,18 @@ class FirebaseConfig {
       appId: Environment.firebaseAppId,
       messagingSenderId: Environment.firebaseMessagingSenderId,
       projectId: Environment.firebaseProjectId,
-      // Web用の設定（必要に応じて追加）
-      authDomain: '${Environment.firebaseProjectId}.firebaseapp.com',
-      storageBucket: '${Environment.firebaseProjectId}.appspot.com',
+      // Web用の設定
+      // 環境変数で指定されていない場合は自動生成
+      authDomain: Environment.firebaseAuthDomain.isNotEmpty
+          ? Environment.firebaseAuthDomain
+          : '${Environment.firebaseProjectId}.firebaseapp.com',
+      storageBucket: Environment.firebaseStorageBucket.isNotEmpty
+          ? Environment.firebaseStorageBucket
+          : '${Environment.firebaseProjectId}.appspot.com',
+      // Analytics用（オプショナル）
+      measurementId: Environment.firebaseMeasurementId.isNotEmpty
+          ? Environment.firebaseMeasurementId
+          : null,
     );
   }
 

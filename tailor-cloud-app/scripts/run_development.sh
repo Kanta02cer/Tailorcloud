@@ -57,6 +57,16 @@ if [ "${ENABLE_FIREBASE:-false}" = "true" ]; then
         if [ -n "$FIREBASE_MESSAGING_SENDER_ID" ]; then
             RUN_ARGS+=("--dart-define=FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID")
         fi
+        # オプショナルなFirebase設定
+        if [ -n "$FIREBASE_AUTH_DOMAIN" ]; then
+            RUN_ARGS+=("--dart-define=FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN")
+        fi
+        if [ -n "$FIREBASE_STORAGE_BUCKET" ]; then
+            RUN_ARGS+=("--dart-define=FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET")
+        fi
+        if [ -n "$FIREBASE_MEASUREMENT_ID" ]; then
+            RUN_ARGS+=("--dart-define=FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID")
+        fi
     fi
 fi
 
