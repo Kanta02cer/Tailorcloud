@@ -46,7 +46,8 @@ class ComplianceDocumentScreen extends StatelessWidget {
     );
 
     try {
-      final fileName = 'compliance_doc_${orderId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final fileName =
+          'compliance_doc_${orderId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
       final filePath = await PdfDownloadService.downloadPdf(
         url: documentUrl,
         fileName: fileName,
@@ -193,4 +194,3 @@ class ComplianceDocumentScreen extends StatelessWidget {
     );
   }
 }
-

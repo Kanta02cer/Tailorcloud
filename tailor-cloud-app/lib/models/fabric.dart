@@ -34,8 +34,7 @@ class Fabric with _$Fabric {
     @JsonKey(name: 'updated_at') DateTime? updatedAt,
   }) = _Fabric;
 
-  factory Fabric.fromJson(Map<String, dynamic> json) =>
-      _$FabricFromJson(json);
+  factory Fabric.fromJson(Map<String, dynamic> json) => _$FabricFromJson(json);
 }
 
 /// 生地拡張メソッド
@@ -74,4 +73,3 @@ extension FabricExtension on Fabric {
     return null;
   }
 }
-

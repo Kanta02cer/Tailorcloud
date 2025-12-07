@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "tailor-cloud-backend/cmd/api/main.go",
+      "use": "@vercel/go"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "tailor-cloud-backend/cmd/api/main.go"
+    }
+  ],
+  "env": {
+    "PORT": "8080",
+    "GCP_PROJECT_ID": "gen-lang-client-0552849356",
+    "DEFAULT_TENANT_ID": "00000000-0000-0000-0000-000000000001"
+  }
+}

@@ -112,19 +112,19 @@ class _OrderConfirmScreenState extends ConsumerState<OrderConfirmScreen> {
           children: [
             // 注文情報カード
             _buildOrderInfoCard(),
-            
+
             const SizedBox(height: 24),
-            
+
             // 委託をする者の氏名入力
             _buildPrincipalNameInput(),
-            
+
             const SizedBox(height: 32),
-            
+
             // 注意事項
             _buildNoticeCard(),
-            
+
             const SizedBox(height: 32),
-            
+
             // 確定ボタン
             ElevatedButton(
               onPressed: _isLoading ? null : _confirmOrder,
@@ -345,4 +345,3 @@ class _OrderConfirmScreenState extends ConsumerState<OrderConfirmScreen> {
     return '${date.year}年${date.month}月${date.day}日';
   }
 }
-

@@ -46,14 +46,14 @@ class OrderDetailScreen extends ConsumerWidget {
             children: [
               // 注文情報カード
               _buildOrderInfoCard(context, order),
-              
+
               const SizedBox(height: 24),
-              
+
               // 注文明細セクション
               _buildOrderDetailsSection(context, order),
-              
+
               const SizedBox(height: 24),
-              
+
               // アクションボタン
               _buildActionButtons(context, ref, order),
             ],
@@ -145,55 +145,55 @@ class OrderDetailScreen extends ConsumerWidget {
                 _buildStatusBadge(order.status),
               ],
             ),
-            
+
             const Divider(
               color: EnterpriseColors.borderGray,
               height: 32,
             ),
-            
+
             // 顧客ID
             _buildInfoRow(
               icon: Icons.person,
               label: '顧客ID',
               value: order.customerId,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // 生地ID
             _buildInfoRow(
               icon: Icons.inventory_2,
               label: '生地ID',
               value: order.fabricId,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // 金額
             _buildInfoRow(
               icon: Icons.attach_money,
               label: '金額',
               value: order.amountDisplay,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // 納期
             _buildInfoRow(
               icon: Icons.calendar_today,
               label: '納期',
               value: _formatDate(order.deliveryDate),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // 支払期日
             _buildInfoRow(
               icon: Icons.payment,
               label: '支払期日',
               value: _formatDate(order.paymentDueDate),
             ),
-            
+
             if (order.complianceDocUrl != null) ...[
               const SizedBox(height: 16),
               _buildInfoRow(
@@ -359,7 +359,7 @@ class OrderDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
         ],
-        
+
         // 発注書PDF表示ボタン（確定済みで生成済みの場合）
         if (order.status == OrderStatus.confirmed &&
             order.complianceDocUrl != null) ...[
@@ -384,7 +384,7 @@ class OrderDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
         ],
-        
+
         // インボイスPDF生成ボタン（確定済みの場合）
         if (order.status == OrderStatus.confirmed) ...[
           ElevatedButton.icon(
@@ -400,7 +400,7 @@ class OrderDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
         ],
-        
+
         // 注文確定ボタン（下書きの場合）
         if (order.status == OrderStatus.draft) ...[
           ElevatedButton.icon(
@@ -426,7 +426,7 @@ class OrderDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
         ],
-        
+
         // 修正発注書生成ボタン（確定済みの場合）
         if (order.status == OrderStatus.confirmed) ...[
           OutlinedButton.icon(
@@ -625,7 +625,8 @@ class OrderDetailScreen extends ConsumerWidget {
         if (shouldDownload == true) {
           // PDFをダウンロード
           try {
-            final fileName = 'invoice_${order.id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+            final fileName =
+                'invoice_${order.id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
             final filePath = await PdfDownloadService.downloadPdf(
               url: response.invoiceUrl,
               fileName: fileName,
@@ -666,4 +667,3 @@ class OrderDetailScreen extends ConsumerWidget {
     }
   }
 }
-

@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
 
 	"tailor-cloud/backend/internal/config"
 	"tailor-cloud/backend/internal/handler"
@@ -46,11 +49,61 @@ func main() {
 
 	// 2. Initialize Firebase/Firestore (Secondary DB)
 	// 仕様書要件: Secondary DB (NoSQL): Firestore - 案件チャットログ、一時的なUIステータス、通知バッジ
-	conf := &firebase.Config{ProjectID: os.Getenv("GCP_PROJECT_ID")}
-	app, err := firebase.NewApp(ctx, conf)
-	if err != nil {
-		log.Printf("WARNING: Failed to initialize Firebase app: %v", err)
-		log.Printf("WARNING: Continuing without Firestore (chat features will not work)")
+	var app *firebase.App
+	gcpProjectID := os.Getenv("GCP_PROJECT_ID")
+	serviceAccountJSON := os.Getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+
+	if gcpProjectID != "" {
+		var opts []option.ClientOption
+
+		// 認証情報の読み込み（Render環境とローカル環境の両方に対応）
+		if serviceAccountJSON != "" {
+			// Render環境: 環境変数からJSON認証情報を読み込む
+			log.Println("Loading Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON environment variable")
+
+			// JSONをパースしてprivate_keyの改行コードを修正
+			// Renderの環境変数で \n がリテラルとして渡されるケースと、標準的なJSONのケース両方に対応
+			var creds map[string]interface{}
+			if err := json.Unmarshal([]byte(serviceAccountJSON), &creds); err != nil {
+				log.Printf("WARNING: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON: %v - Verify your environment variable format", err)
+				// パース失敗時もそのまま渡してみる（形式が特殊な場合のフォールバック）
+			} else {
+				if pk, ok := creds["private_key"].(string); ok {
+					// リテラルの \\n が含まれている場合のみ置換を実行
+					if strings.Contains(pk, "\\n") {
+						log.Println("Detected escaped newlines in private_key, replacing with actual newlines...")
+						creds["private_key"] = strings.ReplaceAll(pk, "\\n", "\n")
+
+						// JSONを再構築
+						if fixedJSON, err := json.Marshal(creds); err == nil {
+							serviceAccountJSON = string(fixedJSON)
+						}
+					}
+				}
+			}
+
+			opts = append(opts, option.WithCredentialsJSON([]byte(serviceAccountJSON)))
+		} else if credPath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"); credPath != "" {
+			// ローカル環境: ファイルパスから読み込む
+			log.Printf("Loading Firebase credentials from file: %s", credPath)
+			opts = append(opts, option.WithCredentialsFile(credPath))
+		} else {
+			// Application Default Credentials (ADC) を使用
+			log.Println("Using Application Default Credentials for Firebase")
+		}
+
+		conf := &firebase.Config{ProjectID: gcpProjectID}
+		firebaseApp, err := firebase.NewApp(ctx, conf, opts...)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize Firebase app: %v", err)
+			log.Printf("WARNING: Continuing without Firebase (authentication features will not work)")
+			app = nil
+		} else {
+			app = firebaseApp
+			log.Println("Firebase app initialized successfully")
+		}
+	} else {
+		log.Println("WARNING: GCP_PROJECT_ID not set. Firebase features will not be available.")
 		app = nil
 	}
 
@@ -80,7 +133,11 @@ func main() {
 			orderRepo = repository.NewFirestoreOrderRepository(firestoreClient)
 			log.Println("WARNING: Using Firestore for orders (fallback mode - not recommended for production)")
 		} else {
-			log.Fatalf("FATAL: Neither PostgreSQL nor Firestore is available. Cannot start server.")
+			// 開発環境: データベースがなくても起動可能（認証エンドポイントなどは動作）
+			log.Println("WARNING: Neither PostgreSQL nor Firestore is available.")
+			log.Println("WARNING: Order-related endpoints will not work, but authentication endpoints will work.")
+			log.Println("WARNING: This is acceptable for development/testing purposes.")
+			orderRepo = nil
 		}
 	}
 
@@ -178,6 +235,13 @@ func main() {
 		log.Println("Tenant repository initialized")
 	}
 
+	// ユーザーリポジトリ: PostgreSQLを使用
+	var userRepo repository.UserRepository
+	if db != nil {
+		userRepo = repository.NewPostgreSQLUserRepository(db)
+		log.Println("User repository initialized")
+	}
+
 	// 反物（Roll）リポジトリ: PostgreSQLを使用
 	var fabricRollRepo repository.FabricRollRepository
 	if db != nil {
@@ -215,7 +279,14 @@ func main() {
 	}
 
 	// 注文サービス: 監査ログリポジトリとアンバサダーサービスを注入
-	orderService := service.NewOrderService(orderRepo, auditLogRepo, ambassadorService)
+	// orderRepoがnilの場合はnil
+	var orderService *service.OrderService
+	if orderRepo != nil {
+		orderService = service.NewOrderService(orderRepo, auditLogRepo, ambassadorService)
+		log.Println("Order service initialized")
+	} else {
+		log.Println("WARNING: Order service not initialized (no database available)")
+	}
 
 	// 生地サービス
 	var fabricService *service.FabricService
@@ -228,6 +299,13 @@ func main() {
 	if customerRepo != nil && orderRepo != nil {
 		customerService = service.NewCustomerService(customerRepo, orderRepo)
 		log.Println("Customer service initialized")
+	}
+
+	// アナリティクスサービス
+	var analyticsService *service.AnalyticsService
+	if orderRepo != nil && customerRepo != nil {
+		analyticsService = service.NewAnalyticsService(orderRepo, customerRepo)
+		log.Println("Analytics service initialized")
 	}
 
 	// 在庫引当サービス（エンタープライズ実装の核心）
@@ -332,8 +410,22 @@ func main() {
 		log.Println("Measurement validation service initialized")
 	}
 
+	// ユーザーサービス
+	var userService *service.UserService
+	if userRepo != nil && tenantRepo != nil {
+		userService = service.NewUserService(userRepo, tenantRepo)
+		log.Println("User service initialized")
+	}
+
 	// ハンドラー
-	orderHandler := handler.NewOrderHandler(orderService)
+	// orderServiceがnilの場合はnil
+	var orderHandler *handler.OrderHandler
+	if orderService != nil {
+		orderHandler = handler.NewOrderHandler(orderService)
+		log.Println("Order handler initialized")
+	} else {
+		log.Println("WARNING: Order handler not initialized (order service not available)")
+	}
 
 	// 生地ハンドラー
 	var fabricHandler *handler.FabricHandler
@@ -348,14 +440,31 @@ func main() {
 	}
 
 	// コンプライアンスハンドラー（発注書生成用）
-	complianceHandler := handler.NewComplianceHandler(complianceService, orderService)
-	log.Println("Compliance handler initialized")
+	// complianceServiceまたはorderServiceがnilの場合はnil
+	var complianceHandler *handler.ComplianceHandler
+	if complianceService != nil && orderService != nil {
+		complianceHandler = handler.NewComplianceHandler(complianceService, orderService)
+		log.Println("Compliance handler initialized")
+	} else {
+		log.Println("WARNING: Compliance handler not initialized (compliance or order service not available)")
+	}
 
 	// 顧客ハンドラー
 	var customerHandler *handler.CustomerHandler
 	if customerService != nil {
 		customerHandler = handler.NewCustomerHandler(customerService)
 		log.Println("Customer handler initialized")
+	} else {
+		log.Println("WARNING: Customer handler not initialized (customer service not available)")
+	}
+
+	// アナリティクスハンドラー
+	var analyticsHandler *handler.AnalyticsHandler
+	if analyticsService != nil {
+		analyticsHandler = handler.NewAnalyticsHandler(analyticsService)
+		log.Println("Analytics handler initialized")
+	} else {
+		log.Println("WARNING: Analytics handler not initialized (analytics service not available)")
 	}
 
 	// 反物（Roll）ハンドラー
@@ -414,31 +523,56 @@ func main() {
 		log.Println("Measurement validation handler initialized")
 	}
 
+	// 認証ハンドラー（Firebase Auth用）
+	var authEndpointHandler *handler.AuthHandler
+	if app != nil {
+		authHdlr, err := handler.NewAuthHandler(app, userService)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize Auth handler: %v", err)
+		} else {
+			authEndpointHandler = authHdlr
+			log.Println("Auth handler initialized")
+		}
+	}
+
 	// 4. Routing
 	mux := http.NewServeMux()
 
 	// Order endpoints with authentication
-	// Phase 1ではOptionalAuthを使用（開発環境対応）
-	// 本番環境では Authenticate() を使用
+	// 環境変数ENVに基づいて認証モードを切り替え
 	var authHandler func(http.HandlerFunc) http.HandlerFunc
 	if authMiddleware != nil {
-		// 開発環境: OptionalAuth（認証が失敗しても通す）
-		authHandler = authMiddleware.OptionalAuth
-		log.Println("Using OptionalAuth middleware (development mode)")
+		env := os.Getenv("ENV")
+		if env == "production" {
+			// 本番環境: 認証必須（Authenticate）
+			authHandler = authMiddleware.Authenticate
+			log.Println("Using Authenticate middleware (production mode - authentication required)")
+		} else {
+			// 開発環境: 認証オプショナル（OptionalAuth）
+			authHandler = authMiddleware.OptionalAuth
+			log.Println("Using OptionalAuth middleware (development mode - authentication optional)")
+		}
 	} else {
 		// 認証ミドルウェアがない場合はパススルー
 		authHandler = func(next http.HandlerFunc) http.HandlerFunc {
 			return next
 		}
+		log.Println("WARNING: Authentication middleware not available - all requests will pass through")
 	}
 
+	// CORSミドルウェアをインポート
+	// 開発環境ではすべてのオリジンを許可
+	corsMiddleware := middleware.CORS
+
 	// ミドルウェアチェーンを作成
-	// 順序: Trace -> Logging -> Metrics -> Auth -> RBAC -> Handler
+	// 順序: CORS -> Trace -> Logging -> Metrics -> Auth -> RBAC -> Handler
 	chainMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
-		// トレースIDを付与 -> ロギング -> メトリクス収集
-		return traceMiddleware.Trace(
-			loggingMiddleware.Log(
-				metricsMiddleware.Collect(next),
+		// CORS -> トレースIDを付与 -> ロギング -> メトリクス収集
+		return corsMiddleware(
+			traceMiddleware.Trace(
+				loggingMiddleware.Log(
+					metricsMiddleware.Collect(next),
+				),
 			),
 		)
 	}
@@ -448,17 +582,22 @@ func main() {
 		return chainMiddleware(authHandler(next))
 	}
 
-	// Order endpoints
-	mux.HandleFunc("POST /api/orders", authChainMiddleware(orderHandler.CreateOrder))
-	mux.HandleFunc("POST /api/orders/confirm", authChainMiddleware(rbacMiddleware.RequireOwnerOrStaff()(orderHandler.ConfirmOrder)))
-	mux.HandleFunc("GET /api/orders", authChainMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		// order_idがあれば単一取得、なければ一覧取得
-		if r.URL.Query().Get("order_id") != "" {
-			orderHandler.GetOrder(w, r)
-		} else {
-			orderHandler.ListOrders(w, r)
-		}
-	}))
+	// Order endpoints（orderHandlerがnilの場合は登録しない）
+	if orderHandler != nil {
+		mux.HandleFunc("POST /api/orders", authChainMiddleware(orderHandler.CreateOrder))
+		mux.HandleFunc("POST /api/orders/confirm", authChainMiddleware(rbacMiddleware.RequireOwnerOrStaff()(orderHandler.ConfirmOrder)))
+		mux.HandleFunc("GET /api/orders", authChainMiddleware(func(w http.ResponseWriter, r *http.Request) {
+			// order_idがあれば単一取得、なければ一覧取得
+			if r.URL.Query().Get("order_id") != "" {
+				orderHandler.GetOrder(w, r)
+			} else {
+				orderHandler.ListOrders(w, r)
+			}
+		}))
+		log.Println("Order endpoints registered")
+	} else {
+		log.Println("WARNING: Order endpoints not registered (order service not available)")
+	}
 
 	// Compliance endpoints (PDF生成)
 	// 注意: パスパターンは /api/orders/{id}/generate-document の形式
@@ -491,6 +630,48 @@ func main() {
 		mux.HandleFunc("PUT /api/customers/{id}", authChainMiddleware(rbacMiddleware.RequireOwnerOrStaff()(customerHandler.UpdateCustomer)))
 		mux.HandleFunc("DELETE /api/customers/{id}", authChainMiddleware(rbacMiddleware.RequireOwnerOnly()(customerHandler.DeleteCustomer)))
 		mux.HandleFunc("GET /api/customers/{id}/orders", authChainMiddleware(customerHandler.GetCustomerOrders))
+		log.Println("Customer endpoints registered")
+	} else {
+		// 開発環境用: データベースなしでもエンドポイントを登録（モックレスポンス）
+		mux.HandleFunc("GET /api/customers", authChainMiddleware(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"customers": []interface{}{},
+				"total":     0,
+				"message":   "Database not connected. This is a mock response for development.",
+			})
+		}))
+		mux.HandleFunc("POST /api/customers", authChainMiddleware(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "Database not connected. Customer service unavailable.",
+			})
+		}))
+		log.Println("Customer endpoints registered (mock mode - database not connected)")
+	}
+
+	// Analytics endpoints
+	if analyticsHandler != nil {
+		mux.HandleFunc("GET /api/analytics/summary", authChainMiddleware(analyticsHandler.GetSummary))
+		log.Println("Analytics endpoints registered")
+	} else {
+		// 開発環境用: データベースなしでもエンドポイントを登録（モックレスポンス）
+		mux.HandleFunc("GET /api/analytics/summary", authChainMiddleware(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"total_customers":      0,
+				"total_orders":         0,
+				"total_revenue":        0.0,
+				"revenue_trend":        []interface{}{},
+				"top_customers":        []interface{}{},
+				"order_status_summary": map[string]int{},
+				"message":              "Database not connected. This is a mock response for development.",
+			})
+		}))
+		log.Println("Analytics endpoints registered (mock mode - database not connected)")
 	}
 
 	// Fabric Roll (反物管理) endpoints
@@ -550,6 +731,12 @@ func main() {
 	metricsHandler := handler.NewMetricsHandler(metricsCollector)
 	mux.HandleFunc("GET /api/metrics", chainMiddleware(metricsHandler.GetMetrics))
 
+	// Auth (認証) endpoints
+	if authEndpointHandler != nil {
+		mux.HandleFunc("POST /api/auth/verify", chainMiddleware(authEndpointHandler.VerifyToken))
+		log.Println("Auth endpoints registered")
+	}
+
 	// Health Check (監視ミドルウェアは適用しない)
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		// データベース接続状態も確認
@@ -571,8 +758,31 @@ func main() {
 		port = "8080"
 	}
 
+	// CORS対応のHTTPハンドラーを作成
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// CORSヘッダーを設定
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			origin = "*"
+		}
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Max-Age", "3600")
+
+		// OPTIONSリクエスト（プリフライト）の処理
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// ルーターにリクエストを渡す
+		mux.ServeHTTP(w, r)
+	})
+
 	log.Printf("TailorCloud Backend running on port %s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }

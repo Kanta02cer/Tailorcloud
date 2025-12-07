@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'config/enterprise_theme.dart';
+import 'config/firebase_config.dart';
+import 'config/app_config.dart';
+import 'services/logger.dart';
 import 'screens/main_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Firebase初期化（オプショナル - 設定ファイルがない場合でも動作）
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {
-    // Firebase設定ファイルがない場合は警告のみ
-    debugPrint('Warning: Firebase initialization failed: $e');
-    debugPrint('The app will run without Firebase features.');
+
+  // 環境設定をログ出力
+  Logger.info('Starting TailorCloud App');
+  if (AppConfig.enableDebugLogging) {
+    Logger.debug(AppConfig.info);
   }
-  
+
+  // Firebase初期化（環境変数で制御）
+  final firebaseInitialized = await FirebaseConfig.initialize();
+  if (!firebaseInitialized && AppConfig.enableFirebase) {
+    Logger.warning(
+        'Firebase initialization failed. App will run without Firebase features.');
+  }
+
   runApp(
     const ProviderScope(
       child: TailorCloudApp(),
@@ -46,7 +52,8 @@ class TailorCloudApp extends ConsumerWidget {
           backgroundColor: EnterpriseColors.deepBlack,
           body: Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(EnterpriseColors.primaryBlue),
+              valueColor:
+                  AlwaysStoppedAnimation<Color>(EnterpriseColors.primaryBlue),
             ),
           ),
         ),
@@ -55,4 +62,3 @@ class TailorCloudApp extends ConsumerWidget {
     );
   }
 }
-
