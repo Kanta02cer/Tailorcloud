@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -59,6 +60,14 @@ func main() {
 		if serviceAccountJSON != "" {
 			// Render環境: 環境変数からJSON認証情報を読み込む
 			log.Println("Loading Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON environment variable")
+
+			// 改行文字の修正: Renderの環境変数でエスケープされた \n を実際の改行コードに置換
+			// これを行わないと "private key should be a PEM or plain PKCS1 or PKCS8" エラーになる場合がある
+			if strings.Contains(serviceAccountJSON, "\\n") {
+				log.Println("Detected escaped newlines in Firebase credentials, replacing them...")
+				serviceAccountJSON = strings.ReplaceAll(serviceAccountJSON, "\\n", "\n")
+			}
+
 			opts = append(opts, option.WithCredentialsJSON([]byte(serviceAccountJSON)))
 		} else if credPath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"); credPath != "" {
 			// ローカル環境: ファイルパスから読み込む
