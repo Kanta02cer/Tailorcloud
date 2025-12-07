@@ -61,11 +61,25 @@ func main() {
 			// Render環境: 環境変数からJSON認証情報を読み込む
 			log.Println("Loading Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON environment variable")
 
-			// 改行文字の修正: Renderの環境変数でエスケープされた \n を実際の改行コードに置換
-			// これを行わないと "private key should be a PEM or plain PKCS1 or PKCS8" エラーになる場合がある
-			if strings.Contains(serviceAccountJSON, "\\n") {
-				log.Println("Detected escaped newlines in Firebase credentials, replacing them...")
-				serviceAccountJSON = strings.ReplaceAll(serviceAccountJSON, "\\n", "\n")
+			// JSONをパースしてprivate_keyの改行コードを修正
+			// Renderの環境変数で \n がリテラルとして渡されるケースと、標準的なJSONのケース両方に対応
+			var creds map[string]interface{}
+			if err := json.Unmarshal([]byte(serviceAccountJSON), &creds); err != nil {
+				log.Printf("WARNING: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON: %v - Verify your environment variable format", err)
+				// パース失敗時もそのまま渡してみる（形式が特殊な場合のフォールバック）
+			} else {
+				if pk, ok := creds["private_key"].(string); ok {
+					// リテラルの \\n が含まれている場合のみ置換を実行
+					if strings.Contains(pk, "\\n") {
+						log.Println("Detected escaped newlines in private_key, replacing with actual newlines...")
+						creds["private_key"] = strings.ReplaceAll(pk, "\\n", "\n")
+
+						// JSONを再構築
+						if fixedJSON, err := json.Marshal(creds); err == nil {
+							serviceAccountJSON = string(fixedJSON)
+						}
+					}
+				}
 			}
 
 			opts = append(opts, option.WithCredentialsJSON([]byte(serviceAccountJSON)))
